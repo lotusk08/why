@@ -1,56 +1,66 @@
 <!DOCTYPE html>
-<html lang="fr">
-
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
-  <meta property="og:image" content="argument-map.jpeg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:image" content="/static/argument-map.jpeg" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="2400" />
   <meta property="og:image:height" content="1256" />
-  <meta property="og:image:alt" content="Un exemple de représentation d'un argument" />
-  <title>Argument map</title>
-  <link rel="stylesheet" href="style.min.css">
+  <meta property="og:image:alt" content="Tool to create argument schemes" />
+  <title>Think Why?</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="/static/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/icon-180x180.png">
+  <link rel="manifest" href="/static/manifest.json">
 </head>
-
 <body>
   <nav>
-    <span id="saveToPNG" title="Sauvegarder en tant qu'image" onclick="toPNG()">💾</span>
-    <span id="createLink" title="Créer un lien vers cet argument">🔗</span>
-    <div id="myModal">
-      <!-- Modal content -->
-      <div id="modal-content">
-        <span id="closeModal">&times;</span>
-        <textarea id="codageArgument"></textarea>
+    <div class="menu-container">
+      <div class="menu-actions">
+        <button class="menu-button" title="Save">
+          <i class="fas fa-save"></i>
+        </button>
+        <button class="menu-button" title="Share">
+          <i class="fas fa-link"></i>
+        </button>
+        <div class="tooltip">
+          <button class="menu-button" title="Help">
+            <i class="fas fa-info-circle"></i>
+          </button>
+          <div class="tooltiptext">
+            <ul>
+              <li>To create a premise or objection: Double-click on the screen.</li>
+              <li>To create a link between an argument (premise or objection) and an idea: Drag and drop the argument onto the idea.</li>
+              <li>To create linked premises: Drag and drop each premise onto the conclusion, then one premise onto the other.</li>
+              <li>To navigate through the argument: Tab key.</li>
+              <li>To edit an element: Enter or Double-click on the element.</li>
+              <li>To delete an element: Delete or Backspace key.</li>
+              <li>Mouse: You can move or zoom on the argument.</li>
+              <li>Undo: Cmd+Z</li>
+              <li>To save: Click on <i class="fas fa-save"></i></li>
+              <li>To share: Click on <i class="fas fa-link"></i> to get the URL of the argument.</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
-    <span class="tooltip">ⓘ
-      <span class="tooltiptext">
-        <ul>
-          <li>Pour créer une prémisse ou une objection : Double-clic sur l'écran.</li>
-          <li>Pour créer un lien entre un argument (prémisse ou objection) et une idée : glisser-déposer l'argument sur
-            l'idée</li>
-          <li>Pour créer des prémisses liées : glisser-déposer chaque prémisse sur la conclusion, puis l'une des
-            prémisses sur l'autre</li>
-          <li>Pour naviguer dans l'argumentation : Tabulation</li>
-          <li>Pour éditer un élément : Enter ou Double-clic sur l'élément</li>
-          <li>Pour supprimer un élément : Delete</li>
-          <li>Souris : vous pouvez déplacer ou zoomer sur l'argument</li>
-          <li>Retour en arrière : Cmd+z</li>
-          <li>Pour sauvegarder : Clic sur 💾 </li>
-          <li>Pour partager : Clic sur 🔗 pour obtenir l'URL de l'argument</li>
-        </ul>
-      </span>
-    </span>
-    <span title="Version FR du logiciel Reasons créé par Dave Kinkead"><a href="https://github.com/eyssette/argument-map">©</a></span></span>
   </nav>
-  <div id="element"></div>
 
+  <div id="myModal" class="modal">
+    <div id="modal-content" class="modal-content">
+      <span id="closeModal" class="close">×</span>
+      <h3>Link to this argument</h3>
+      <textarea id="codageArgument" readonly></textarea>
+    </div>
+  </div>
+
+  <div id="element"></div>
   <div id="element-test" style="display:none"></div>
 
   <script src="reasons.min.js"></script>
   <script src="custom.min.js"></script>
 </body>
-
-</html>
-
 </html>

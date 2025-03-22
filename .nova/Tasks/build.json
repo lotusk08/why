@@ -1,0 +1,8 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "browserify lib\/reasons.js -s Reasons -o reasons.js\nuglifyjs reasons.js -o reasons.min.js\nuglifyjs custom.js -o custom.min.js"
+    }
+  }
+}

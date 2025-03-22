@@ -47,7 +47,7 @@ function init (element) {
      */
     element.from = Utils.flatten([element.from]).map((from) => { return from.id || from })
     element.to = element.to.id || element.to
-    element.type = element.type || 'donc'
+    element.type = element.type || 'do'
     element.paths = []
   } else {
 
@@ -1128,7 +1128,7 @@ function toolbarNode(mapper, element) {
   node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
 
   node.appendChild(toolButton({
-    name: 'Prémisse',
+    name: 'Premise',
     onclick:() => changeLine(mapper, element, 'solid')
   }))
   node.appendChild(toolButton({
@@ -1138,7 +1138,7 @@ function toolbarNode(mapper, element) {
   node.appendChild(toolButton({
     name: 'Supprimer',
     onclick: () => {
-      if (confirm("Voulez-vous vraiment supprimer cet élément ?")) {
+      if (confirm("Do you really want to delete this item?")) {
         deleteElement(mapper, element)
         removeOverlay(mapper)
         redraw(mapper)
@@ -1458,7 +1458,7 @@ function draw_edge (edge, {context, offset}) {
   if (elements[0].lineType == 'dashed') {
     context.setLineDash([10, 10])
     context.strokeStyle = 'rgba('+rgb2+',1)'
-    if (edge.type == "donc") {edge.type= "objection !"}
+    if (edge.type == "do") {edge.type= "objection !"}
   }
   
 
@@ -1604,48 +1604,48 @@ function pointOfIntersection (from, rect, buffer) {
 },{"./Element":1,"./utils":8}],10:[function(require,module,exports){
 (function(global) {
 
-	var indexOf = Array.prototype.indexOf || function(elem) {
-		var idx, len;
+  var indexOf = Array.prototype.indexOf || function(elem) {
+    var idx, len;
 
-		if (this == null) {
-			throw new TypeError("indexOf called on null or undefined");
-		}
+    if (this == null) {
+      throw new TypeError("indexOf called on null or undefined");
+    }
 
-		for (idx = 0, len = this.length; idx < len; ++idx) {
-			if (this[idx] === elem) {
-				return idx;
-			}
-		}
+    for (idx = 0, len = this.length; idx < len; ++idx) {
+      if (this[idx] === elem) {
+        return idx;
+      }
+    }
 
-		return -1;
-	};
+    return -1;
+  };
 
-	function difference(a, b) {
-		var idx, len;
-		var res = [];
+  function difference(a, b) {
+    var idx, len;
+    var res = [];
 
-		for (idx = 0, len = a.length; idx < len; ++idx) {
-			if (indexOf.call(b, a[idx]) === -1) {
-				res.push(a[idx]);
-			}
-		}
-		for (idx = 0, len = b.length; idx < len; ++idx) {
-			if (indexOf.call(a, b[idx]) === -1) {
-				res.push(b[idx]);
-			}
-		}
-		return res;
-	}
+    for (idx = 0, len = a.length; idx < len; ++idx) {
+      if (indexOf.call(b, a[idx]) === -1) {
+        res.push(a[idx]);
+      }
+    }
+    for (idx = 0, len = b.length; idx < len; ++idx) {
+      if (indexOf.call(a, b[idx]) === -1) {
+        res.push(b[idx]);
+      }
+    }
+    return res;
+  }
 
-	if (typeof module === "object" && module.exports) {
-		module.exports = difference;
-	} else if (typeof define === "function" && define.amd) {
-		define(function() {
-			return difference;
-		});
-	} else {
-		global.difference = difference;
-	}
+  if (typeof module === "object" && module.exports) {
+    module.exports = difference;
+  } else if (typeof define === "function" && define.amd) {
+    define(function() {
+      return difference;
+    });
+  } else {
+    global.difference = difference;
+  }
 
 }(this));
 
