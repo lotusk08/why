@@ -14,7 +14,7 @@ function clamp(value, min, max) {
 }
 
 export function createMapper(container, options) {
-  const { onChange, onEdit, onState, onReject, blocked } = { blocked: () => false, ...options };
+  const { onChange, onEdit, onState, onNotice, blocked } = { blocked: () => false, ...options };
   const view = createView(container);
   let theme = readTheme(container);
   let graph = new Graph([]);
@@ -39,6 +39,7 @@ export function createMapper(container, options) {
   function hit(point) {
     const elements = graph.elements;
     const focused = graph.focused;
+    graph.markPairs();
     if (focused?.kind === 'node' && nodeContains(focused, point)) return focused;
     for (let i = elements.length - 1; i >= 0; i--) {
       if (elements[i].kind === 'node' && nodeContains(elements[i], point)) return elements[i];
@@ -179,6 +180,16 @@ export function createMapper(container, options) {
     return graph.nodes.find((n) => n !== node && nodeContains(n, node)) || null;
   }
 
+  function describe(el) {
+    if (el.kind !== 'edge') return {};
+    return {
+      joint: el.from.length > 1,
+      twoWay: Boolean(graph.reverseOf(el)),
+      from: graph.find(el.from[0])?.text ?? '',
+      to: graph.find(el.to)?.text ?? ''
+    };
+  }
+
   const ctl = {
     camera,
     blocked,
@@ -235,8 +246,12 @@ export function createMapper(container, options) {
       view.canvas.style.cursor = 'grab';
       if (target) {
         const problem = graph.linkProblem(node.id, target.id);
-        if (problem) onReject?.(problem);
-        else graph.add({ from: node.id, to: target.id });
+        if (problem) {
+          onNotice?.(problem);
+        } else {
+          const added = graph.add({ from: node.id, to: target.id });
+          if (added && graph.reverseOf(added)) onNotice?.('both-ways');
+        }
         placeNode(node, origin);
       }
       commit();
@@ -250,16 +265,18 @@ export function createMapper(container, options) {
       graph.focus(node);
       publish();
       requestDraw();
-      onEdit?.(node, true);
+      onEdit?.(node, true, {});
     },
     edit(el) {
-      onEdit?.(el, false);
+      onEdit?.(el, false, describe(el));
     },
     remove(el) {
       const target = find(el);
       if (!target) return;
       if (hovered === target) hovered = null;
+      const reverse = graph.reverseOf(target);
       graph.remove(target);
+      if (reverse) graph.remove(reverse);
       commit();
     }
   };
@@ -298,8 +315,13 @@ export function createMapper(container, options) {
       if (el.kind === 'node') {
         if (typeof patch.text === 'string') el.text = patch.text;
         if (patch.lineType) el.lineType = patch.lineType === 'dashed' ? 'dashed' : 'solid';
-      } else if (typeof patch.type === 'string') {
-        el.type = patch.type;
+      } else {
+        const kept = patch.direction ? graph.setDirection(el, patch.direction) : el;
+        if (typeof patch.type === 'string') {
+          kept.type = patch.type;
+          const reverse = graph.reverseOf(kept);
+          if (reverse) reverse.type = patch.type;
+        }
       }
       commit();
     },

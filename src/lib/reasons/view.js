@@ -82,10 +82,25 @@ export function edgeLabel(edge, graph) {
   return edge.type || (graph.isObjection(edge) ? 'objection' : 'therefore');
 }
 
+function arrowBase(head) {
+  return { x: (head[1].x + head[2].x) / 2, y: (head[1].y + head[2].y) / 2 };
+}
+
+function fillHead(ctx, head) {
+  ctx.beginPath();
+  ctx.moveTo(head[0].x, head[0].y);
+  ctx.lineTo(head[1].x, head[1].y);
+  ctx.lineTo(head[2].x, head[2].y);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawEdge(ctx, edge, graph, theme, scale) {
+  if (edge.mirror) return;
   routeEdge(edge, graph);
   if (!edge.paths.length) return;
-  const objection = graph.isObjection(edge);
+  const reverse = edge.twoWay ? graph.reverseOf(edge) : null;
+  const objection = graph.isObjection(edge) || (reverse ? graph.isObjection(reverse) : false);
   const active = edge.focused || edge.hovering;
   const color = edge.focused ? theme.focus : edge.hovering ? theme.hover : objection ? theme.objection : theme.edge;
   ctx.strokeStyle = color;
@@ -93,23 +108,23 @@ function drawEdge(ctx, edge, graph, theme, scale) {
   ctx.lineWidth = active ? 2 : 1.5;
   ctx.setLineDash(objection ? [6, 5] : []);
   const last = edge.paths.length - 1;
+  const first = edge.paths[0];
   const head = arrowHead(edge.paths[last]);
-  const base = { x: (head[1].x + head[2].x) / 2, y: (head[1].y + head[2].y) / 2 };
+  const base = arrowBase(head);
+  const tail = reverse ? arrowHead({ x1: first.x2, y1: first.y2, x2: first.x1, y2: first.y1 }) : null;
+  const tailBase = tail ? arrowBase(tail) : null;
   ctx.beginPath();
   edge.paths.forEach((s, i) => {
-    ctx.moveTo(s.x1, s.y1);
-    if (i === last) ctx.lineTo(base.x, base.y);
-    else ctx.lineTo(s.x2, s.y2);
+    const from = i === 0 && tailBase ? tailBase : { x: s.x1, y: s.y1 };
+    const to = i === last ? base : { x: s.x2, y: s.y2 };
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
   });
   ctx.stroke();
   ctx.setLineDash([]);
 
-  ctx.beginPath();
-  ctx.moveTo(head[0].x, head[0].y);
-  ctx.lineTo(head[1].x, head[1].y);
-  ctx.lineTo(head[2].x, head[2].y);
-  ctx.closePath();
-  ctx.fill();
+  fillHead(ctx, head);
+  if (tail) fillHead(ctx, tail);
 
   if (edge.from.length > 1) {
     ctx.beginPath();
@@ -117,7 +132,9 @@ function drawEdge(ctx, edge, graph, theme, scale) {
     ctx.fill();
   }
 
-  const text = edgeLabel(edge, graph);
+  const label = edgeLabel(edge, graph);
+  const other = reverse ? edgeLabel(reverse, graph) : label;
+  const text = other === label ? label : `${label} · ${other}`;
   ctx.font = labelFont(theme);
   const width = ctx.measureText(text).width;
   edge.label = { text, width };
@@ -168,7 +185,7 @@ export function paint(ctx, graph, camera, theme, dpr = 1) {
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   measureAll(ctx, graph, theme);
-  graph.edges.forEach((edge) => drawEdge(ctx, edge, graph, theme, camera.scale));
+  graph.markPairs().forEach((edge) => drawEdge(ctx, edge, graph, theme, camera.scale));
   const nodes = graph.nodes;
   nodes.filter((node) => !node.focused).forEach((node) => drawNode(ctx, node, theme));
   nodes.filter((node) => node.focused).forEach((node) => drawNode(ctx, node, theme));

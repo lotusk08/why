@@ -97,6 +97,21 @@ describe('routeEdge', () => {
     expect(edge.center).toEqual(edge.labelAt);
   });
 
+  it('leaves room for an arrowhead at both ends of a two-way link', () => {
+    const graph = new Graph([
+      { id: 'a', text: 'A', x: 0, y: -200 },
+      { id: 'c', text: 'C', x: 0, y: 200 },
+      { id: 'e', from: 'a', to: 'c' },
+      { id: 'f', from: 'c', to: 'a' }
+    ]);
+    const [forward, backward] = graph.markPairs();
+    routeEdge(forward, graph);
+    const half = graph.find('a').height / 2;
+    expect(forward.paths).toEqual([{ x1: 0, y1: -200 + half + 1, x2: 0, y2: 200 - half - 1 }]);
+    expect(edgeHit(backward, { x: 0, y: 0 }, 4)).toBe(false);
+    expect(edgeHit(forward, { x: 0, y: 0 }, 4)).toBe(true);
+  });
+
   it('clears paths when an endpoint is missing', () => {
     const graph = new Graph([{ id: 'a', text: 'A', x: 0, y: 0 }]);
     const edge = { kind: 'edge', from: ['a'], to: 'ghost', paths: [{}], center: { x: 1, y: 1 } };

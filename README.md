@@ -13,6 +13,8 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 | Double-click empty space                                               | Add an idea                                |
 | Double-click an idea or a link                                         | Edit it, make it a premise or an objection |
 | Drag an idea onto another                                              | Link them                                  |
+| Drag it back the other way                                             | Link both ways                             |
+| Double-click a link                                                    | Name it, or turn it around                 |
 | Drag each premise onto the conclusion, then one premise onto the other | Make them argue together                   |
 | Drag the background                                                    | Pan                                        |
 | Scroll or pinch                                                        | Zoom                                       |

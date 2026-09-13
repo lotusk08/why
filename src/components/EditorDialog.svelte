@@ -6,19 +6,13 @@
   let textarea = $state(null);
   let text = $state('');
   let lineType = $state('solid');
+  let direction = $state('forward');
 
   const editing = $derived(ui.editing);
   const isNode = $derived(editing?.kind === 'node');
+  const directional = $derived(Boolean(editing) && !isNode && !editing.joint);
   const title = $derived(
-    !editing
-      ? ''
-      : !isNode
-        ? 'Link label'
-        : editing.isNew
-          ? 'New idea'
-          : lineType === 'dashed'
-            ? 'Objection'
-            : 'Premise'
+    !editing ? '' : !isNode ? 'Link' : editing.isNew ? 'New idea' : lineType === 'dashed' ? 'Objection' : 'Premise'
   );
 
   $effect(() => {
@@ -26,6 +20,7 @@
     if (editing) {
       text = editing.text;
       lineType = editing.lineType;
+      direction = editing.twoWay ? 'both' : 'forward';
       if (!dialog.open) dialog.showModal();
       const end = editing.text.length;
       queueMicrotask(() => {
@@ -37,8 +32,13 @@
     }
   });
 
+  function short(value) {
+    const name = String(value || '').trim() || '…';
+    return name.length > 18 ? `${name.slice(0, 17)}…` : name;
+  }
+
   function submit() {
-    actions.submitEdit(text, lineType);
+    actions.submitEdit(text, lineType, direction);
   }
 
   function onKeydown(event) {
@@ -98,7 +98,38 @@
           </button>
         </div>
       {:else}
-        <p class="note">Leave it empty to label the link automatically.</p>
+        {#if directional}
+          <div class="kind" role="radiogroup" aria-label="Direction">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={direction === 'forward'}
+              class:active={direction === 'forward'}
+              onclick={() => (direction = 'forward')}
+            >
+              {short(editing.from)} → {short(editing.to)}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={direction === 'backward'}
+              class:active={direction === 'backward'}
+              onclick={() => (direction = 'backward')}
+            >
+              {short(editing.to)} → {short(editing.from)}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={direction === 'both'}
+              class:active={direction === 'both'}
+              onclick={() => (direction = 'both')}
+            >
+              Both ways
+            </button>
+          </div>
+        {/if}
+        <p class="note">Leave the label empty to name it automatically.</p>
       {/if}
     </div>
 
@@ -143,6 +174,8 @@
 
   .kind {
     display: inline-flex;
+    flex-wrap: wrap;
+    max-width: 100%;
     margin-top: 1rem;
     border: 1px solid var(--btn-border-color);
     border-radius: var(--radius-xs);

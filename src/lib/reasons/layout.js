@@ -47,7 +47,7 @@ export function routeEdge(edge, graph) {
   }
   if (sources.length === 1) {
     const source = sources[0];
-    const start = boundaryPoint(target, source, 0);
+    const start = boundaryPoint(target, source, edge.twoWay ? ARROW_GAP : 0);
     const end = boundaryPoint(source, target, ARROW_GAP);
     edge.paths = [{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }];
     edge.center = midpoint(edge.paths[0]);
@@ -97,7 +97,7 @@ export function rectsOverlap(a, b) {
 }
 
 export function edgeHit(edge, p, tolerance) {
-  if (!edge.center) return false;
+  if (!edge.center || edge.mirror) return false;
   if (edge.label && edge.labelAt) {
     const halfWidth = edge.label.width / 2 + 4;
     if (Math.abs(p.x - edge.labelAt.x) <= halfWidth && Math.abs(p.y - edge.labelAt.y) <= 10) return true;

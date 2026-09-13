@@ -58,7 +58,7 @@
     <ul>
       <li>Double-click empty space to add an idea.</li>
       <li>Double-click an idea or a link to edit it.</li>
-      <li>Drag an idea onto another to link them.</li>
+      <li>Drag an idea onto another to link them. Drag it back the other way and the link goes both ways.</li>
       <li>Drag each premise onto the conclusion, then one premise onto the other, to make them argue together.</li>
       <li>Drag the background to move around. Scroll or pinch to zoom.</li>
       <li>Tab moves through the ideas. Enter edits, Delete removes, ⌘Z undoes.</li>

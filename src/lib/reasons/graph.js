@@ -46,16 +46,16 @@ export class Graph {
     const endpoints = [...sources, to].map((id) => this.find(id));
     if (endpoints.some((el) => !el || el.kind !== 'node')) return 'missing';
     if (this.edges.some((e) => e.to === to && sources.every((id) => e.from.includes(id)))) return 'duplicate';
-    const reachable = this.descendants(to);
-    if (sources.some((id) => reachable.includes(id))) return 'cycle';
     return null;
   }
 
-  addEdge(edge) {
+  addEdge(edge, { merge = true } = {}) {
     if (this.linkProblem(edge.from, edge.to)) return null;
     while (this.find(edge.id)) edge.id = uid();
 
-    const shared = this.children(edge.to).filter((child) => edge.from.some((id) => this.children(id).includes(child)));
+    const shared = merge
+      ? this.children(edge.to).filter((child) => edge.from.some((id) => this.children(id).includes(child)))
+      : [];
     if (!shared.length) {
       this.elements.push(edge);
       return edge;
@@ -98,17 +98,65 @@ export class Graph {
   }
 
   focusNext() {
-    const count = this.elements.length;
-    if (!count) return null;
-    const index = this.elements.findIndex((e) => e.focused);
-    return this.focus(this.elements[(index + 1) % count]);
+    const list = this.visible;
+    if (!list.length) return null;
+    const index = list.findIndex((e) => e.focused);
+    return this.focus(list[(index + 1) % list.length]);
   }
 
   focusPrevious() {
-    const count = this.elements.length;
-    if (!count) return null;
-    const index = this.elements.findIndex((e) => e.focused);
-    return this.focus(this.elements[(index - 1 + count) % count]);
+    const list = this.visible;
+    if (!list.length) return null;
+    const index = list.findIndex((e) => e.focused);
+    return this.focus(list[(index - 1 + list.length) % list.length]);
+  }
+
+  get visible() {
+    this.markPairs();
+    return this.elements.filter((e) => !e.mirror);
+  }
+
+  reverseOf(edge) {
+    if (!edge || edge.kind !== 'edge' || edge.from.length !== 1) return null;
+    return (
+      this.edges.find((e) => e !== edge && e.from.length === 1 && e.from[0] === edge.to && e.to === edge.from[0]) ||
+      null
+    );
+  }
+
+  markPairs() {
+    const edges = this.edges;
+    edges.forEach((edge) => {
+      edge.twoWay = false;
+      edge.mirror = false;
+    });
+    for (const edge of edges) {
+      if (edge.mirror || edge.twoWay) continue;
+      const reverse = this.reverseOf(edge);
+      if (reverse) {
+        edge.twoWay = true;
+        reverse.mirror = true;
+      }
+    }
+    return edges;
+  }
+
+  setDirection(edge, direction) {
+    if (edge.from.length !== 1) return edge;
+    const reverse = this.reverseOf(edge);
+    const mirrored = () =>
+      this.addEdge(createEdge({ from: edge.to, to: edge.from[0], type: edge.type }), { merge: false });
+    if (direction === 'both') {
+      if (!reverse) mirrored();
+      return edge;
+    }
+    if (direction === 'backward') {
+      const kept = reverse || mirrored();
+      this.remove(edge);
+      return kept;
+    }
+    if (reverse) this.remove(reverse);
+    return edge;
   }
 
   unfocus() {
@@ -121,20 +169,6 @@ export class Graph {
 
   children(id) {
     return unique(this.edges.filter((e) => e.from.includes(id)).map((e) => e.to));
-  }
-
-  descendants(id) {
-    const seen = new Set();
-    const stack = [id];
-    while (stack.length) {
-      for (const child of this.children(stack.pop())) {
-        if (!seen.has(child)) {
-          seen.add(child);
-          stack.push(child);
-        }
-      }
-    }
-    return [...seen];
   }
 
   isObjection(edge) {

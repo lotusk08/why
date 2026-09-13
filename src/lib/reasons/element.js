@@ -62,6 +62,8 @@ export function createEdge(data = {}) {
     center: null,
     labelAt: null,
     label: null,
+    twoWay: false,
+    mirror: false,
     focused: false,
     hovering: false
   };

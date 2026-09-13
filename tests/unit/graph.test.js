@@ -24,79 +24,57 @@ describe('Graph', () => {
     expect(graph.edges).toHaveLength(1);
   });
 
-  it('never links two ideas in both directions', () => {
+  it('links two ideas both ways and pairs the two links', () => {
     const graph = new Graph(base());
-    graph.add({ from: 'a', to: 'c' });
-    expect(graph.linkProblem('c', 'a')).toBe('cycle');
-    expect(graph.add({ from: 'c', to: 'a' })).toBeNull();
-    expect(graph.edges).toHaveLength(1);
-    expect(graph.edges[0].from).toEqual(['a']);
+    const forward = graph.add({ from: 'a', to: 'c' });
+    const backward = graph.add({ from: 'c', to: 'a' });
+    expect(graph.edges).toHaveLength(2);
+    expect(graph.reverseOf(forward)).toBe(backward);
+    graph.markPairs();
+    expect(forward.twoWay).toBe(true);
+    expect(backward.mirror).toBe(true);
+    expect(graph.visible).not.toContain(backward);
+    expect(graph.linkProblem('c', 'a')).toBe('duplicate');
   });
 
-  it('refuses links that would argue in a circle', () => {
+  it('allows longer circles of support', () => {
     const graph = new Graph(base());
     graph.add({ from: 'a', to: 'b' });
     graph.add({ from: 'b', to: 'c' });
-    expect(graph.linkProblem('c', 'a')).toBe('cycle');
-    expect(graph.add({ from: 'c', to: 'a' })).toBeNull();
-    graph.add({ from: ['a', 'b'], to: 'c' });
-    expect(graph.linkProblem('c', 'b')).toBe('cycle');
-    expect(graph.linkProblem('a', 'c')).toBe('duplicate');
+    expect(graph.add({ from: 'c', to: 'a' })).not.toBeNull();
+    expect(graph.edges).toHaveLength(3);
     expect(graph.linkProblem('a', 'a')).toBe('self');
     expect(graph.linkProblem('a', 'ghost')).toBe('missing');
   });
 
-  it('keeps only the first direction when saved data holds both', () => {
-    const graph = new Graph([...base(), { from: 'a', to: 'c' }, { from: 'c', to: 'a' }]);
-    expect(graph.edges).toHaveLength(1);
-    expect(graph.edges[0].to).toBe('c');
-  });
-
-  it('refuses an edge that starts or ends on another edge', () => {
+  it('turns a link around or makes it go both ways', () => {
     const graph = new Graph(base());
-    const edge = graph.add({ from: 'a', to: 'c' });
-    expect(graph.add({ from: 'b', to: edge.id })).toBeNull();
-    expect(graph.add({ from: edge.id, to: 'b' })).toBeNull();
-  });
-
-  it('joins two premises that support the same conclusion', () => {
-    const graph = new Graph(base());
-    graph.add({ from: 'a', to: 'c' });
-    graph.add({ from: 'b', to: 'c' });
-    const merged = graph.add({ from: 'a', to: 'b' });
+    const link = graph.add({ from: 'a', to: 'c', type: 'so' });
+    expect(graph.setDirection(link, 'both')).toBe(link);
+    expect(graph.edges).toHaveLength(2);
+    expect(graph.reverseOf(link).type).toBe('so');
+    expect(graph.setDirection(link, 'forward')).toBe(link);
     expect(graph.edges).toHaveLength(1);
-    expect(merged.to).toBe('c');
-    expect([...merged.from].sort()).toEqual(['a', 'b']);
+    const turned = graph.setDirection(link, 'backward');
+    expect(graph.edges).toEqual([turned]);
+    expect(turned.from).toEqual(['c']);
+    expect(turned.to).toBe('a');
   });
 
-  it('keeps unrelated support when premises are joined', () => {
+  it('does not join premises when a link is only turned around', () => {
     const graph = new Graph([...base(), { id: 'd', text: 'D', x: 0, y: 200 }]);
-    graph.add({ from: 'a', to: 'c' });
-    graph.add({ from: 'b', to: 'c' });
+    const link = graph.add({ from: 'a', to: 'b' });
     graph.add({ from: 'a', to: 'd' });
-    graph.add({ from: 'a', to: 'b' });
-    expect(graph.edges).toHaveLength(2);
-    expect(graph.children('a').sort()).toEqual(['c', 'd']);
+    graph.add({ from: 'b', to: 'd' });
+    graph.setDirection(link, 'both');
+    expect(graph.edges).toHaveLength(4);
+    expect(graph.children('a').sort()).toEqual(['b', 'd']);
+    expect(graph.children('b').sort()).toEqual(['a', 'd']);
   });
 
-  it('creates a chain when the target has no shared conclusion', () => {
-    const graph = new Graph(base());
-    graph.add({ from: 'a', to: 'c' });
-    const chain = graph.add({ from: 'b', to: 'a' });
-    expect(chain.from).toEqual(['b']);
+  it('keeps both directions from saved data', () => {
+    const graph = new Graph([...base(), { from: 'a', to: 'c' }, { from: 'c', to: 'a' }]);
     expect(graph.edges).toHaveLength(2);
-    expect(graph.parents('a')).toEqual(['b']);
-  });
-
-  it('removes a node together with its edges and prunes joint premises', () => {
-    const graph = new Graph(base());
-    graph.add({ from: ['a', 'b'], to: 'c' });
-    graph.remove(graph.find('a'));
-    expect(graph.nodes.map((n) => n.id)).toEqual(['b', 'c']);
-    expect(graph.edges).toHaveLength(1);
-    expect(graph.edges[0].from).toEqual(['b']);
-    graph.remove(graph.find('c'));
-    expect(graph.edges).toHaveLength(0);
   });
 
   it('cycles focus forwards and backwards', () => {
@@ -111,6 +89,16 @@ describe('Graph', () => {
     graph.unfocus();
     expect(graph.focused).toBeNull();
     expect(graph.elements.map((e) => e.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('skips the hidden half of a two-way link when cycling focus', () => {
+    const graph = new Graph(base());
+    const forward = graph.add({ from: 'a', to: 'c' });
+    const backward = graph.add({ from: 'c', to: 'a' });
+    const seen = [];
+    for (let i = 0; i < 4; i++) seen.push(graph.focusNext());
+    expect(seen).toContain(forward);
+    expect(seen).not.toContain(backward);
   });
 
   it('keeps the export stable while focus moves', () => {

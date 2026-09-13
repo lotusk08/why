@@ -44,14 +44,18 @@ export function mountMap(container, elements) {
     blocked: () => Boolean(ui.editing || ui.help),
     onState: (state) => Object.assign(map, state),
     onChange: persist,
-    onReject: (problem) => toast(problem === 'cycle' ? 'That would argue in a circle' : 'Already linked'),
-    onEdit: (el, isNew) => {
+    onNotice: (kind) => {
+      if (kind === 'both-ways') toast('Linked both ways');
+      else if (kind === 'duplicate') toast('Already linked');
+    },
+    onEdit: (el, isNew, details) => {
       ui.editing = {
         id: el.id,
         kind: el.kind,
         text: el.kind === 'node' ? el.text : el.type,
         lineType: el.lineType ?? 'solid',
-        isNew
+        isNew,
+        ...details
       };
     }
   });
@@ -93,7 +97,7 @@ export const actions = {
       toast('Link is in the address bar');
     }
   },
-  submitEdit(text, lineType) {
+  submitEdit(text, lineType, direction) {
     const editing = ui.editing;
     if (!editing || !mapper) return;
     const value = text.trim();
@@ -101,7 +105,7 @@ export const actions = {
       if (value) mapper.update(editing.id, { text: value, lineType });
       else mapper.remove(editing.id);
     } else {
-      mapper.update(editing.id, { type: value });
+      mapper.update(editing.id, { type: value, direction: editing.joint ? undefined : direction });
     }
     ui.editing = null;
   },

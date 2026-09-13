@@ -108,19 +108,35 @@ test('links ideas by dragging one onto another', async ({ page }) => {
   await expect.poll(() => saved(page).then((m) => m.filter((e) => e.to).length)).toBe(2);
 });
 
-test('refuses to link ideas in a circle and puts the idea back', async ({ page }) => {
-  const from = await screenPoint(page, C1);
-  const to = await screenPoint(page, P1);
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(from.x, from.y - 30, { steps: 4 });
-  await page.mouse.move(to.x, to.y, { steps: 12 });
-  await page.mouse.up();
-  await expect(page.locator('.toast')).toHaveText('That would argue in a circle');
-  expect(await counts(page)).toEqual({ nodes: 3, edges: 1 });
-  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('why:map') || 'null'));
-  expect(saved === null || saved.find((e) => e.id === 'c1').y === 130).toBe(true);
+test('links both ways when dragged back, and the editor turns it one way again', async ({ page }) => {
+  const box = await canvasBox(page);
+  const start = { x: box.x + box.width / 2, y: box.y + box.height - 70 };
+  await page.mouse.dblclick(start.x, start.y);
+  await page.keyboard.type('Support');
+  await page.keyboard.press('Enter');
+  const target = await screenPoint(page, C1);
+  const drag = async (from, to) => {
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x, from.y - 30, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 12 });
+    await page.mouse.up();
+  };
+  await drag(start, target);
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '2');
+  await drag(target, start);
+  await expect(page.locator('.toast')).toHaveText('Linked both ways');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '3');
+
+  await page.mouse.dblclick((start.x + target.x) / 2, (start.y + target.y) / 2);
+  await expect(page.locator('#editor-title')).toHaveText('Link');
+  await expect(page.getByRole('radio', { name: 'Both ways' })).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('radio', { name: 'Support → Conclusion' }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '2');
+  await expect
+    .poll(() => saved(page).then((m) => m.filter((e) => e.to).map((e) => `${e.from.join('+')}>${e.to}`)))
+    .toContain('p1+p2>c1');
 });
 
 test('keyboard selects, deletes, undoes and empties the map', async ({ page }) => {
