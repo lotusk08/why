@@ -37,6 +37,22 @@ describe('Graph', () => {
     expect(graph.linkProblem('c', 'a')).toBe('duplicate');
   });
 
+  it('keeps an objection and its support apart as two lanes', () => {
+    const graph = new Graph([{ id: 'o', text: 'No', x: 0, y: 0, lineType: 'dashed' }, ...base()]);
+    const objection = graph.add({ from: 'o', to: 'a' });
+    const support = graph.add({ from: 'a', to: 'o' });
+    graph.markPairs();
+    expect(objection.twoWay).toBe(false);
+    expect(support.mirror).toBe(false);
+    expect([objection.lane, support.lane]).toEqual([1, -1]);
+    expect(graph.visible).toContain(support);
+    graph.find('a').lineType = 'dashed';
+    graph.markPairs();
+    expect(objection.twoWay).toBe(true);
+    expect(support.mirror).toBe(true);
+    expect(objection.lane).toBe(0);
+  });
+
   it('allows longer circles of support', () => {
     const graph = new Graph(base());
     graph.add({ from: 'a', to: 'b' });

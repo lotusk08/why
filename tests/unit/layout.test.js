@@ -97,6 +97,27 @@ describe('routeEdge', () => {
     expect(edge.center).toEqual(edge.labelAt);
   });
 
+  it('offsets an objection and its support onto parallel lanes', () => {
+    const graph = new Graph([
+      { id: 'o', text: 'No', x: 0, y: -200, lineType: 'dashed' },
+      { id: 'c', text: 'C', x: 0, y: 200 },
+      { id: 'e', from: 'o', to: 'c' },
+      { id: 'f', from: 'c', to: 'o' }
+    ]);
+    const [objection, support] = graph.markPairs();
+    routeEdge(objection, graph);
+    routeEdge(support, graph);
+    expect(objection.paths[0].x1).toBe(-7);
+    expect(objection.paths[0].x2).toBe(-7);
+    expect(support.paths[0].x1).toBe(7);
+    expect(support.paths[0].x2).toBe(7);
+    expect(objection.paths[0].y1).toBeLessThan(support.paths[0].y1);
+    expect(objection.labelAt.y).toBeLessThan(0);
+    expect(support.labelAt.y).toBeGreaterThan(0);
+    expect(edgeHit(support, { x: 7, y: 100 }, 4)).toBe(true);
+    expect(edgeHit(objection, { x: 7, y: 100 }, 4)).toBe(false);
+  });
+
   it('leaves room for an arrowhead at both ends of a two-way link', () => {
     const graph = new Graph([
       { id: 'a', text: 'A', x: 0, y: -200 },

@@ -31,9 +31,29 @@ export function boundaryPoint(from, rect, buffer = 0) {
 }
 
 const ARROW_GAP = 1;
+const LANE_GAP = 7;
+const LANE_LABEL_AT = 0.38;
+
+function pointAt(segment, t) {
+  return { x: segment.x1 + (segment.x2 - segment.x1) * t, y: segment.y1 + (segment.y2 - segment.y1) * t };
+}
 
 function midpoint(segment) {
-  return { x: (segment.x1 + segment.x2) / 2, y: (segment.y1 + segment.y2) / 2 };
+  return pointAt(segment, 0.5);
+}
+
+function shiftAside(segment, distance) {
+  const dx = segment.x2 - segment.x1;
+  const dy = segment.y2 - segment.y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const side = dx < 0 || (dx === 0 && dy < 0) ? -distance : distance;
+  const shift = { x: (-dy / length) * side, y: (dx / length) * side };
+  return {
+    x1: segment.x1 + shift.x,
+    y1: segment.y1 + shift.y,
+    x2: segment.x2 + shift.x,
+    y2: segment.y2 + shift.y
+  };
 }
 
 export function routeEdge(edge, graph) {
@@ -49,8 +69,11 @@ export function routeEdge(edge, graph) {
     const source = sources[0];
     const start = boundaryPoint(target, source, edge.twoWay ? ARROW_GAP : 0);
     const end = boundaryPoint(source, target, ARROW_GAP);
-    edge.paths = [{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }];
+    const straight = { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
+    edge.paths = [edge.lane ? shiftAside(straight, LANE_GAP * edge.lane) : straight];
     edge.center = midpoint(edge.paths[0]);
+    edge.labelAt = edge.lane ? pointAt(edge.paths[0], LANE_LABEL_AT) : edge.center;
+    return;
   } else {
     const all = [...sources, target];
     const xs = all.map((n) => n.x);

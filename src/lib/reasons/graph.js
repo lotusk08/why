@@ -129,13 +129,18 @@ export class Graph {
     edges.forEach((edge) => {
       edge.twoWay = false;
       edge.mirror = false;
+      edge.lane = 0;
     });
     for (const edge of edges) {
-      if (edge.mirror || edge.twoWay) continue;
+      if (edge.mirror || edge.twoWay || edge.lane) continue;
       const reverse = this.reverseOf(edge);
-      if (reverse) {
+      if (!reverse) continue;
+      if (this.isObjection(edge) === this.isObjection(reverse)) {
         edge.twoWay = true;
         reverse.mirror = true;
+      } else {
+        edge.lane = 1;
+        reverse.lane = -1;
       }
     }
     return edges;
