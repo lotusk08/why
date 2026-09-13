@@ -141,6 +141,16 @@ test('switches between light and dark mode', async ({ page }) => {
   await expect(html).not.toHaveAttribute('data-mode', /.+/);
 });
 
+test('shows the menu tips on hover', async ({ page }) => {
+  const tips = page.locator('#menu-tips');
+  await expect(tips).toBeHidden();
+  await page.getByRole('button', { name: 'Help' }).hover();
+  await expect(tips).toBeVisible();
+  await expect(tips).toContainText('Double-click empty space to add an idea.');
+  await page.getByRole('button', { name: 'Zoom in' }).hover();
+  await expect(tips).toBeHidden();
+});
+
 test('opens and closes the help dialog', async ({ page }) => {
   await page.getByRole('button', { name: 'Help' }).click();
   const dialog = page.getByRole('dialog');

@@ -94,6 +94,9 @@
   --kbd-bg-color: light-dark(#ffffff, #242424);
   --kbd-wrap-color: light-dark(rgb(189 189 189), #6a6a6a);
   --tooltip-bg: rgb(16 16 16 / 95%);
+  --menu-bg: light-dark(rgb(255 255 255 / 55%), rgb(28 28 28 / 60%));
+  --menu-shadow: light-dark(0 2px 10px rgb(0 0 0 / 15%), 0 2px 10px rgb(0 0 0 / 50%));
+  --menu-tip-bg: light-dark(rgb(51 51 51 / 75%), rgb(36 36 36 / 85%));
   --danger-color: light-dark(#da3633, #e5484d);
   --selection-color: light-dark(rgb(212 150 90 / 16%), rgb(212 150 90 / 26%));
   --canvas-node-bg: light-dark(#ffffff, #141414);

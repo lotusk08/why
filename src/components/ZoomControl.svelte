@@ -75,9 +75,10 @@
     transform: rotate(45deg) scale(1.1);
   }
 
-  @media (max-width: 420px) {
+  @media (max-width: 600px) {
     .zoom {
       right: 1rem;
+      bottom: calc(5.25rem + var(--safe-bottom));
     }
 
     .level {

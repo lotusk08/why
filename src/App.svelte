@@ -1,5 +1,6 @@
 <script>
   import TopBar from './components/TopBar.svelte';
+  import Menu from './components/Menu.svelte';
   import Canvas from './components/Canvas.svelte';
   import ZoomControl from './components/ZoomControl.svelte';
   import EmptyHint from './components/EmptyHint.svelte';
@@ -18,6 +19,8 @@
   {/if}
   <ZoomControl />
 </main>
+
+<Menu />
 
 <EditorDialog />
 <HelpDialog />
