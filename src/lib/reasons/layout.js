@@ -31,6 +31,7 @@ export function boundaryPoint(from, rect, buffer = 0) {
 }
 
 const ARROW_GAP = 1;
+const JOIN_STEM = 64;
 const LANE_GAP = 7;
 const LANE_LABEL_AT = 0.38;
 
@@ -59,6 +60,7 @@ function shiftAside(segment, distance) {
 export function routeEdge(edge, graph) {
   const sources = edge.from.map((id) => graph.find(id)).filter((n) => n && n.kind === 'node');
   const target = graph.find(edge.to);
+  edge.labelSide = null;
   if (!sources.length || !target || target.kind !== 'node') {
     edge.paths = [];
     edge.center = null;
@@ -74,23 +76,25 @@ export function routeEdge(edge, graph) {
     edge.center = midpoint(edge.paths[0]);
     edge.labelAt = edge.lane ? pointAt(edge.paths[0], LANE_LABEL_AT) : edge.center;
     return;
-  } else {
-    const all = [...sources, target];
-    const xs = all.map((n) => n.x);
-    const ys = all.map((n) => n.y);
-    const junction = {
-      x: (Math.min(...xs) + Math.max(...xs)) / 2,
-      y: (Math.min(...ys) + Math.max(...ys)) / 2
-    };
-    edge.center = junction;
-    edge.paths = sources.map((n) => {
-      const start = boundaryPoint(junction, n, 0);
-      return { x1: start.x, y1: start.y, x2: junction.x, y2: junction.y };
-    });
-    const end = boundaryPoint(junction, target, ARROW_GAP);
-    edge.paths.push({ x1: junction.x, y1: junction.y, x2: end.x, y2: end.y });
   }
-  edge.labelAt = midpoint(edge.paths[edge.paths.length - 1]);
+  const centroid = {
+    x: sources.reduce((sum, n) => sum + n.x, 0) / sources.length,
+    y: sources.reduce((sum, n) => sum + n.y, 0) / sources.length
+  };
+  const entry = boundaryPoint(centroid, target, ARROW_GAP);
+  const dx = centroid.x - entry.x;
+  const dy = centroid.y - entry.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  const stem = Math.min(JOIN_STEM, distance / 2);
+  const junction = { x: entry.x + (dx / distance) * stem, y: entry.y + (dy / distance) * stem };
+  edge.center = junction;
+  edge.paths = sources.map((n) => {
+    const start = boundaryPoint(junction, n, 0);
+    return { x1: start.x, y1: start.y, x2: junction.x, y2: junction.y };
+  });
+  edge.paths.push({ x1: junction.x, y1: junction.y, x2: entry.x, y2: entry.y });
+  edge.labelAt = junction;
+  edge.labelSide = { x: -dy / distance, y: dx / distance };
 }
 
 export function arrowHead(segment, size = 9) {

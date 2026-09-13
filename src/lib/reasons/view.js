@@ -139,6 +139,11 @@ function drawEdge(ctx, edge, graph, theme, scale) {
   const width = ctx.measureText(text).width;
   edge.label = { text, width };
   const pad = 6 / Math.max(scale, 0.5);
+  if (edge.labelSide) {
+    const side = edge.labelSide;
+    const reach = Math.abs(side.x) * (width / 2 + 10) + Math.abs(side.y) * (LABEL_SIZE / 2 + 8);
+    edge.labelAt = { x: edge.labelAt.x + side.x * reach, y: edge.labelAt.y + side.y * reach };
+  }
   const at = edge.labelAt;
   ctx.clearRect(at.x - width / 2 - pad, at.y - LABEL_SIZE * 0.7, width + pad * 2, LABEL_SIZE * 1.4);
   ctx.fillStyle = active ? color : theme.edgeText;

@@ -139,8 +139,46 @@ test('links both ways when dragged back, and the editor turns it one way again',
     .toContain('p1+p2>c1');
 });
 
+test('joins three, then four premises into one conclusion, and fans one premise out', async ({ page }) => {
+  const box = await canvasBox(page);
+  const target = await screenPoint(page, C1);
+  const premise = await screenPoint(page, P1);
+  const spots = [
+    { x: box.x + 120, y: box.y + box.height - 70 },
+    { x: box.x + box.width - 120, y: box.y + box.height - 70 }
+  ];
+  const drag = async (from, to) => {
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x, from.y - 30, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 12 });
+    await page.mouse.up();
+  };
+  for (const [index, spot] of spots.entries()) {
+    await page.mouse.dblclick(spot.x, spot.y);
+    await page.keyboard.type(`Premise ${index + 3}`);
+    await page.keyboard.press('Enter');
+    await drag(spot, target);
+  }
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '3');
+  await drag(spots[0], premise);
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '2');
+  await drag(spots[1], premise);
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '1');
+  await expect.poll(() => saved(page).then((m) => m?.find((e) => e.to)?.from?.length ?? 0)).toBe(4);
+
+  const spot = { x: box.x + box.width / 2, y: box.y + 60 };
+  await page.mouse.dblclick(spot.x, spot.y);
+  await page.keyboard.type('Another conclusion');
+  await page.keyboard.press('Enter');
+  await drag(premise, spot);
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '2');
+  await expect.poll(() => saved(page).then((m) => m?.filter((e) => e.to && e.from.includes('p1')).length ?? 0)).toBe(2);
+});
+
 test('takes one premise out of a joint link before deleting the rest', async ({ page }) => {
-  const segment = await screenPoint(page, { x: P1.x / 2, y: P1.y / 2 });
+  const junctionY = C1.y - 28 - 1 - 64;
+  const segment = await screenPoint(page, { x: P1.x / 2, y: (P1.y + junctionY) / 2 });
   await page.mouse.dblclick(segment.x, segment.y);
   await expect(page.locator('#editor-title')).toHaveText('Joint link');
   await expect(page.getByRole('list', { name: 'Premises in this link' })).toContainText('Premise 1 → Conclusion');

@@ -61,6 +61,7 @@ export function createEdge(data = {}) {
     paths: [],
     center: null,
     labelAt: null,
+    labelSide: null,
     label: null,
     twoWay: false,
     mirror: false,

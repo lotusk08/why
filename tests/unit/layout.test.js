@@ -69,18 +69,36 @@ describe('routeEdge', () => {
     ]);
     const edge = graph.edges[0];
     routeEdge(edge, graph);
-    expect(edge.center).toEqual({ x: 0, y: 0 });
-    expect(edge.paths).toHaveLength(3);
     const half = graph.find('c').height / 2;
+    const entry = 200 - half - 1;
+    expect(edge.center).toEqual({ x: 0, y: entry - 64 });
+    expect(edge.paths).toHaveLength(3);
     const first = edge.paths[0];
     expect(first.x1).toBeGreaterThan(-200);
     expect(first.y1).toBeGreaterThan(-200);
+    expect(first.x2).toBe(0);
+    expect(first.y2).toBe(entry - 64);
     const last = edge.paths[2];
-    expect(last.x2).toBe(0);
-    expect(last.y2).toBeCloseTo(200 - half - 1);
-    expect(edge.labelAt).toEqual({ x: 0, y: last.y2 / 2 });
-    expect(edgeHit(edge, { x: -100, y: -100 }, 4)).toBe(true);
+    expect(last).toEqual({ x1: 0, y1: entry - 64, x2: 0, y2: entry });
+    expect(edge.labelAt).toEqual(edge.center);
+    expect(edge.labelSide).toEqual({ x: 1, y: 0 });
+    const onPath = { x: -100, y: (-200 + (entry - 64)) / 2 };
+    expect(edgeHit(edge, onPath, 4)).toBe(true);
     expect(edgeHit(edge, { x: 150, y: 150 }, 4)).toBe(false);
+  });
+
+  it('keeps the stem short when the premises sit close to the conclusion', () => {
+    const graph = new Graph([
+      { id: 'a', text: 'A', x: -120, y: -40 },
+      { id: 'b', text: 'B', x: 120, y: -40 },
+      { id: 'c', text: 'C', x: 0, y: 60 },
+      { id: 'e', from: ['a', 'b'], to: 'c' }
+    ]);
+    const edge = graph.edges[0];
+    routeEdge(edge, graph);
+    const entry = 60 - graph.find('c').height / 2 - 1;
+    expect(entry + 40).toBeLessThan(128);
+    expect(edge.center.y).toBeCloseTo(entry - (entry + 40) / 2);
   });
 
   it('routes a single premise border to border with the label in the middle', () => {
