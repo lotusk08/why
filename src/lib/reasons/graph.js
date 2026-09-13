@@ -40,11 +40,19 @@ export class Graph {
     return node;
   }
 
+  linkProblem(from, to) {
+    const sources = [from].flat();
+    if (!sources.length || !to || sources.includes(to)) return 'self';
+    const endpoints = [...sources, to].map((id) => this.find(id));
+    if (endpoints.some((el) => !el || el.kind !== 'node')) return 'missing';
+    if (this.edges.some((e) => e.to === to && sources.every((id) => e.from.includes(id)))) return 'duplicate';
+    const reachable = this.descendants(to);
+    if (sources.some((id) => reachable.includes(id))) return 'cycle';
+    return null;
+  }
+
   addEdge(edge) {
-    if (!edge.from.length || !edge.to || edge.from.includes(edge.to)) return null;
-    const endpoints = [...edge.from, edge.to].map((id) => this.find(id));
-    if (endpoints.some((el) => !el || el.kind !== 'node')) return null;
-    if (this.edges.some((e) => e.to === edge.to && edge.from.every((id) => e.from.includes(id)))) return null;
+    if (this.linkProblem(edge.from, edge.to)) return null;
     while (this.find(edge.id)) edge.id = uid();
 
     const shared = this.children(edge.to).filter((child) => edge.from.some((id) => this.children(id).includes(child)));
@@ -84,22 +92,23 @@ export class Graph {
   }
 
   focus(el) {
-    const index = this.elements.indexOf(el);
-    if (index < 0) return null;
-    this.elements.push(this.elements.splice(index, 1)[0]);
+    if (!this.elements.includes(el)) return null;
     this.elements.forEach((e) => (e.focused = e === el));
     return el;
   }
 
   focusNext() {
-    if (!this.elements.length) return null;
-    return this.focus(this.elements[0]);
+    const count = this.elements.length;
+    if (!count) return null;
+    const index = this.elements.findIndex((e) => e.focused);
+    return this.focus(this.elements[(index + 1) % count]);
   }
 
   focusPrevious() {
-    if (!this.elements.length) return null;
-    if (this.focused) this.elements.unshift(this.elements.pop());
-    return this.focus(this.elements[this.elements.length - 1]);
+    const count = this.elements.length;
+    if (!count) return null;
+    const index = this.elements.findIndex((e) => e.focused);
+    return this.focus(this.elements[(index - 1 + count) % count]);
   }
 
   unfocus() {
@@ -112,6 +121,20 @@ export class Graph {
 
   children(id) {
     return unique(this.edges.filter((e) => e.from.includes(id)).map((e) => e.to));
+  }
+
+  descendants(id) {
+    const seen = new Set();
+    const stack = [id];
+    while (stack.length) {
+      for (const child of this.children(stack.pop())) {
+        if (!seen.has(child)) {
+          seen.add(child);
+          stack.push(child);
+        }
+      }
+    }
+    return [...seen];
   }
 
   isObjection(edge) {

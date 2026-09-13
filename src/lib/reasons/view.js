@@ -169,9 +169,9 @@ export function paint(ctx, graph, camera, theme, dpr = 1) {
   ctx.lineCap = 'round';
   measureAll(ctx, graph, theme);
   graph.edges.forEach((edge) => drawEdge(ctx, edge, graph, theme, camera.scale));
-  graph.elements.forEach((el) => {
-    if (el.kind === 'node') drawNode(ctx, el, theme);
-  });
+  const nodes = graph.nodes;
+  nodes.filter((node) => !node.focused).forEach((node) => drawNode(ctx, node, theme));
+  nodes.filter((node) => node.focused).forEach((node) => drawNode(ctx, node, theme));
 }
 
 export function createView(container) {

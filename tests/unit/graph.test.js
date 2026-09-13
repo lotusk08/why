@@ -21,8 +21,35 @@ describe('Graph', () => {
     expect(graph.add({ from: 'a', to: 'a' })).toBeNull();
     expect(graph.add({ from: 'a', to: 'c' })).not.toBeNull();
     expect(graph.add({ from: 'a', to: 'c' })).toBeNull();
-    expect(graph.add({ from: 'c', to: 'a' })).not.toBeNull();
-    expect(graph.edges).toHaveLength(2);
+    expect(graph.edges).toHaveLength(1);
+  });
+
+  it('never links two ideas in both directions', () => {
+    const graph = new Graph(base());
+    graph.add({ from: 'a', to: 'c' });
+    expect(graph.linkProblem('c', 'a')).toBe('cycle');
+    expect(graph.add({ from: 'c', to: 'a' })).toBeNull();
+    expect(graph.edges).toHaveLength(1);
+    expect(graph.edges[0].from).toEqual(['a']);
+  });
+
+  it('refuses links that would argue in a circle', () => {
+    const graph = new Graph(base());
+    graph.add({ from: 'a', to: 'b' });
+    graph.add({ from: 'b', to: 'c' });
+    expect(graph.linkProblem('c', 'a')).toBe('cycle');
+    expect(graph.add({ from: 'c', to: 'a' })).toBeNull();
+    graph.add({ from: ['a', 'b'], to: 'c' });
+    expect(graph.linkProblem('c', 'b')).toBe('cycle');
+    expect(graph.linkProblem('a', 'c')).toBe('duplicate');
+    expect(graph.linkProblem('a', 'a')).toBe('self');
+    expect(graph.linkProblem('a', 'ghost')).toBe('missing');
+  });
+
+  it('keeps only the first direction when saved data holds both', () => {
+    const graph = new Graph([...base(), { from: 'a', to: 'c' }, { from: 'c', to: 'a' }]);
+    expect(graph.edges).toHaveLength(1);
+    expect(graph.edges[0].to).toBe('c');
   });
 
   it('refuses an edge that starts or ends on another edge', () => {
@@ -83,6 +110,16 @@ describe('Graph', () => {
     expect(graph.focusPrevious().id).toBe('b');
     graph.unfocus();
     expect(graph.focused).toBeNull();
+    expect(graph.elements.map((e) => e.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('keeps the export stable while focus moves', () => {
+    const graph = new Graph(base());
+    const before = JSON.stringify(graph.export());
+    graph.focus(graph.find('c'));
+    graph.focusNext();
+    graph.focusPrevious();
+    expect(JSON.stringify(graph.export())).toBe(before);
   });
 
   it('exports round-trippable data and normalises legacy labels', () => {

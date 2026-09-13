@@ -1,7 +1,7 @@
 import { Graph } from './graph.js';
 import { placeNode } from './element.js';
 import { attachInteraction } from './interaction.js';
-import { bounds, edgeHit, nodeContains, rectsOverlap } from './layout.js';
+import { bounds, edgeHit, nodeContains } from './layout.js';
 import { createView, labelFont, measureAll, nodeFont, readTheme, renderToBlob } from './view.js';
 
 export const MIN_SCALE = 0.25;
@@ -14,7 +14,7 @@ function clamp(value, min, max) {
 }
 
 export function createMapper(container, options) {
-  const { onChange, onEdit, onState, blocked } = { blocked: () => false, ...options };
+  const { onChange, onEdit, onState, onReject, blocked } = { blocked: () => false, ...options };
   const view = createView(container);
   let theme = readTheme(container);
   let graph = new Graph([]);
@@ -38,6 +38,8 @@ export function createMapper(container, options) {
 
   function hit(point) {
     const elements = graph.elements;
+    const focused = graph.focused;
+    if (focused?.kind === 'node' && nodeContains(focused, point)) return focused;
     for (let i = elements.length - 1; i >= 0; i--) {
       if (elements[i].kind === 'node' && nodeContains(elements[i], point)) return elements[i];
     }
@@ -173,6 +175,10 @@ export function createMapper(container, options) {
     return typeof target === 'string' ? graph.find(target) : target;
   }
 
+  function dropTarget(node) {
+    return graph.nodes.find((n) => n !== node && nodeContains(n, node)) || null;
+  }
+
   const ctl = {
     camera,
     blocked,
@@ -215,8 +221,7 @@ export function createMapper(container, options) {
     drag(node, position) {
       placeNode(node, position);
       view.canvas.style.cursor = 'grabbing';
-      const target = graph.nodes.find((n) => n !== node && rectsOverlap(n, node)) || null;
-      setHover(target);
+      setHover(dropTarget(node));
       requestDraw();
     },
     restore(node, origin) {
@@ -225,11 +230,13 @@ export function createMapper(container, options) {
       requestDraw();
     },
     drop(node, origin) {
-      const target = graph.nodes.find((n) => n !== node && rectsOverlap(n, node));
+      const target = dropTarget(node);
       setHover(null);
       view.canvas.style.cursor = 'grab';
       if (target) {
-        graph.add({ from: node.id, to: target.id });
+        const problem = graph.linkProblem(node.id, target.id);
+        if (problem) onReject?.(problem);
+        else graph.add({ from: node.id, to: target.id });
         placeNode(node, origin);
       }
       commit();

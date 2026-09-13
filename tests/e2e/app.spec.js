@@ -108,6 +108,21 @@ test('links ideas by dragging one onto another', async ({ page }) => {
   await expect.poll(() => saved(page).then((m) => m.filter((e) => e.to).length)).toBe(2);
 });
 
+test('refuses to link ideas in a circle and puts the idea back', async ({ page }) => {
+  const from = await screenPoint(page, C1);
+  const to = await screenPoint(page, P1);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x, from.y - 30, { steps: 4 });
+  await page.mouse.move(to.x, to.y, { steps: 12 });
+  await page.mouse.up();
+  await expect(page.locator('.toast')).toHaveText('That would argue in a circle');
+  expect(await counts(page)).toEqual({ nodes: 3, edges: 1 });
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('why:map') || 'null'));
+  expect(saved === null || saved.find((e) => e.id === 'c1').y === 130).toBe(true);
+});
+
 test('keyboard selects, deletes, undoes and empties the map', async ({ page }) => {
   const box = await canvasBox(page);
   await page.mouse.click(box.x + 40, box.y + 40);

@@ -44,6 +44,7 @@ export function mountMap(container, elements) {
     blocked: () => Boolean(ui.editing || ui.help),
     onState: (state) => Object.assign(map, state),
     onChange: persist,
+    onReject: (problem) => toast(problem === 'cycle' ? 'That would argue in a circle' : 'Already linked'),
     onEdit: (el, isNew) => {
       ui.editing = {
         id: el.id,
