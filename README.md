@@ -8,16 +8,16 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 
 ## Use it
 
-| Do this                                                                | To                                         |
-| ---------------------------------------------------------------------- | ------------------------------------------ |
-| Double-click empty space                                               | Add an idea                                |
-| Double-click an idea or a link                                         | Edit it, make it a premise or an objection |
-| Drag an idea onto another                                              | Link them                                  |
-| Drag it back the other way                                             | Link both ways                             |
-| Double-click a link                                                    | Name it, or turn it around                 |
-| Drag each premise onto the conclusion, then one premise onto the other | Make them argue together                   |
-| Drag the background                                                    | Pan                                        |
-| Scroll or pinch                                                        | Zoom                                       |
+| Do this                                                                | To                                                               |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Double-click empty space                                               | Add an idea                                                      |
+| Double-click an idea or a link                                         | Edit it, make it a premise or an objection                       |
+| Drag an idea onto another                                              | Link them                                                        |
+| Drag it back the other way                                             | Link both ways                                                   |
+| Double-click a link                                                    | Name it, turn it around, or take one premise out of a joint link |
+| Drag each premise onto the conclusion, then one premise onto the other | Make them argue together                                         |
+| Drag the background                                                    | Pan                                                              |
+| Scroll or pinch                                                        | Zoom                                                             |
 
 | Keys                                                                       | Action                   |
 | -------------------------------------------------------------------------- | ------------------------ |

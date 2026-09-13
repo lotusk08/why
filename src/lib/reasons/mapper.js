@@ -182,9 +182,12 @@ export function createMapper(container, options) {
 
   function describe(el) {
     if (el.kind !== 'edge') return {};
+    graph.markPairs();
     return {
       joint: el.from.length > 1,
       twoWay: Boolean(graph.reverseOf(el)),
+      merged: el.twoWay || el.mirror,
+      parts: el.from.map((id) => ({ id, text: graph.find(id)?.text ?? '' })),
       from: graph.find(el.from[0])?.text ?? '',
       to: graph.find(el.to)?.text ?? ''
     };
@@ -274,7 +277,8 @@ export function createMapper(container, options) {
       const target = find(el);
       if (!target) return;
       if (hovered === target) hovered = null;
-      const reverse = graph.reverseOf(target);
+      graph.markPairs();
+      const reverse = target.twoWay || target.mirror ? graph.reverseOf(target) : null;
       graph.remove(target);
       if (reverse) graph.remove(reverse);
       commit();
@@ -326,6 +330,13 @@ export function createMapper(container, options) {
       commit();
     },
     remove: ctl.remove,
+    detach(id, sourceId) {
+      const edge = graph.find(id);
+      if (!edge) return {};
+      graph.detach(edge, sourceId);
+      commit();
+      return describe(edge);
+    },
     refreshTheme() {
       theme = readTheme(container);
       requestDraw();

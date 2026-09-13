@@ -117,5 +117,9 @@ export const actions = {
   deleteEditing() {
     if (ui.editing && mapper) mapper.remove(ui.editing.id);
     ui.editing = null;
+  },
+  detach(sourceId) {
+    if (!ui.editing || !mapper) return;
+    ui.editing = { ...ui.editing, ...mapper.detach(ui.editing.id, sourceId) };
   }
 };

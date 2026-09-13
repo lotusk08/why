@@ -40,7 +40,9 @@
         <li>
           <strong>Drag</strong> an idea onto another to link them. Drag it back the other way and the link goes both ways.
         </li>
-        <li><strong>Double-click</strong> a link to name it or turn it around.</li>
+        <li>
+          <strong>Double-click</strong> a link to name it, turn it around, or take one premise out of a joint link.
+        </li>
         <li>Drag each premise onto the conclusion, then one premise onto the other, to make them argue together.</li>
         <li><strong>Drag</strong> the background to pan. <strong>Scroll</strong> or <strong>pinch</strong> to zoom.</li>
       </ul>

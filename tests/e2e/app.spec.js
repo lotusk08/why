@@ -139,6 +139,21 @@ test('links both ways when dragged back, and the editor turns it one way again',
     .toContain('p1+p2>c1');
 });
 
+test('takes one premise out of a joint link before deleting the rest', async ({ page }) => {
+  const segment = await screenPoint(page, { x: P1.x / 2, y: P1.y / 2 });
+  await page.mouse.dblclick(segment.x, segment.y);
+  await expect(page.locator('#editor-title')).toHaveText('Joint link');
+  await expect(page.getByRole('list', { name: 'Premises in this link' })).toContainText('Premise 1 → Conclusion');
+  await page.getByRole('button', { name: 'Remove Premise 1' }).click();
+  await expect(page.locator('#editor-title')).toHaveText('Link');
+  await expect(page.getByRole('radio', { name: 'Premise 2 → Conclusion' })).toHaveAttribute('aria-checked', 'true');
+  await expect.poll(() => saved(page).then((m) => m?.find((e) => e.to)?.from ?? null)).toEqual(['p2']);
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '0');
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '1');
+});
+
 test('keyboard selects, deletes, undoes and empties the map', async ({ page }) => {
   const box = await canvasBox(page);
   await page.mouse.click(box.x + 40, box.y + 40);

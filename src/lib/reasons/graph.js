@@ -146,6 +146,12 @@ export class Graph {
     return edges;
   }
 
+  detach(edge, sourceId) {
+    if (!edge || edge.kind !== 'edge' || edge.from.length < 2 || !edge.from.includes(sourceId)) return edge;
+    edge.from = edge.from.filter((id) => id !== sourceId);
+    return edge;
+  }
+
   setDirection(edge, direction) {
     if (edge.from.length !== 1) return edge;
     const reverse = this.reverseOf(edge);

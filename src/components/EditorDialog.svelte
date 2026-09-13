@@ -7,17 +7,33 @@
   let text = $state('');
   let lineType = $state('solid');
   let direction = $state('forward');
+  let openedId = null;
 
   const editing = $derived(ui.editing);
   const isNode = $derived(editing?.kind === 'node');
   const directional = $derived(Boolean(editing) && !isNode && !editing.joint);
   const title = $derived(
-    !editing ? '' : !isNode ? 'Link' : editing.isNew ? 'New idea' : lineType === 'dashed' ? 'Objection' : 'Premise'
+    !editing
+      ? ''
+      : !isNode
+        ? editing.joint
+          ? 'Joint link'
+          : 'Link'
+        : editing.isNew
+          ? 'New idea'
+          : lineType === 'dashed'
+            ? 'Objection'
+            : 'Premise'
+  );
+  const deleteLabel = $derived(
+    !editing || isNode ? 'Delete' : editing.joint ? 'Delete all' : editing.merged ? 'Delete both ways' : 'Delete'
   );
 
   $effect(() => {
     if (!dialog) return;
     if (editing) {
+      if (openedId === editing.id) return;
+      openedId = editing.id;
       text = editing.text;
       lineType = editing.lineType;
       direction = editing.twoWay ? 'both' : 'forward';
@@ -27,8 +43,9 @@
         textarea?.focus();
         textarea?.setSelectionRange(end, end);
       });
-    } else if (dialog.open) {
-      dialog.close();
+    } else {
+      openedId = null;
+      if (dialog.open) dialog.close();
     }
   });
 
@@ -98,6 +115,18 @@
           </button>
         </div>
       {:else}
+        {#if editing?.joint}
+          <ul class="parts" aria-label="Premises in this link">
+            {#each editing.parts as part (part.id)}
+              <li class="chip">
+                <span>{short(part.text)} → {short(editing.to)}</span>
+                <button type="button" aria-label="Remove {short(part.text)}" onclick={() => actions.detach(part.id)}>
+                  <Icon name="xmark" />
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
         {#if directional}
           <div class="kind" role="radiogroup" aria-label="Direction">
             <button
@@ -136,7 +165,7 @@
     <footer class="dialog-footer">
       <button type="button" class="btn danger" onclick={actions.deleteEditing}>
         <Icon name="trash" />
-        Delete
+        {deleteLabel}
       </button>
       <button type="button" class="btn primary" onclick={submit}>
         <Icon name="check" />
@@ -205,6 +234,45 @@
   }
 
   .kind button.objection.active {
+    color: var(--danger-color);
+    background-color: color-mix(in srgb, var(--danger-color) 10%, transparent);
+  }
+
+  .parts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.35rem 0.3rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    border: 1px solid var(--btn-border-color);
+    border-radius: var(--radius-xs);
+  }
+
+  .chip button {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--site-btn-color);
+    border-radius: 50%;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .chip button:hover,
+  .chip button:focus-visible {
     color: var(--danger-color);
     background-color: color-mix(in srgb, var(--danger-color) 10%, transparent);
   }

@@ -88,6 +88,16 @@ describe('Graph', () => {
     expect(graph.children('b').sort()).toEqual(['a', 'd']);
   });
 
+  it('takes one premise out of a joint link', () => {
+    const graph = new Graph(base());
+    const joint = graph.add({ from: ['a', 'b'], to: 'c' });
+    expect(graph.detach(joint, 'zzz').from).toEqual(['a', 'b']);
+    expect(graph.detach(joint, 'a').from).toEqual(['b']);
+    expect(graph.detach(joint, 'b').from).toEqual(['b']);
+    expect(graph.edges).toHaveLength(1);
+    expect(graph.export().find((e) => e.to).from).toEqual(['b']);
+  });
+
   it('keeps both directions from saved data', () => {
     const graph = new Graph([...base(), { from: 'a', to: 'c' }, { from: 'c', to: 'a' }]);
     expect(graph.edges).toHaveLength(2);
