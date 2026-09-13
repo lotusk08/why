@@ -92,15 +92,18 @@ function drawEdge(ctx, edge, graph, theme, scale) {
   ctx.fillStyle = color;
   ctx.lineWidth = active ? 2 : 1.5;
   ctx.setLineDash(objection ? [6, 5] : []);
+  const last = edge.paths.length - 1;
+  const head = arrowHead(edge.paths[last]);
+  const base = { x: (head[1].x + head[2].x) / 2, y: (head[1].y + head[2].y) / 2 };
   ctx.beginPath();
-  edge.paths.forEach((s) => {
+  edge.paths.forEach((s, i) => {
     ctx.moveTo(s.x1, s.y1);
-    ctx.lineTo(s.x2, s.y2);
+    if (i === last) ctx.lineTo(base.x, base.y);
+    else ctx.lineTo(s.x2, s.y2);
   });
   ctx.stroke();
   ctx.setLineDash([]);
 
-  const head = arrowHead(edge.paths[edge.paths.length - 1]);
   ctx.beginPath();
   ctx.moveTo(head[0].x, head[0].y);
   ctx.lineTo(head[1].x, head[1].y);
@@ -119,11 +122,12 @@ function drawEdge(ctx, edge, graph, theme, scale) {
   const width = ctx.measureText(text).width;
   edge.label = { text, width };
   const pad = 6 / Math.max(scale, 0.5);
-  ctx.clearRect(edge.center.x - width / 2 - pad, edge.center.y - LABEL_SIZE * 0.7, width + pad * 2, LABEL_SIZE * 1.4);
+  const at = edge.labelAt;
+  ctx.clearRect(at.x - width / 2 - pad, at.y - LABEL_SIZE * 0.7, width + pad * 2, LABEL_SIZE * 1.4);
   ctx.fillStyle = active ? color : theme.edgeText;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, edge.center.x, edge.center.y);
+  ctx.fillText(text, at.x, at.y);
 }
 
 function drawNode(ctx, node, theme) {

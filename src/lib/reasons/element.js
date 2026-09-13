@@ -60,6 +60,7 @@ export function createEdge(data = {}) {
     to: refId(data.to),
     paths: [],
     center: null,
+    labelAt: null,
     label: null,
     focused: false,
     hovering: false

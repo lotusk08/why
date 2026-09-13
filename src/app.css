@@ -73,8 +73,6 @@
   --radius-xs: 4px;
   --radius-sm: 0.2rem;
   --radius-lg: 10px;
-  --topbar-height: 3rem;
-  --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --ease-swap: cubic-bezier(0.25, 0.4, 0.75, 0.6);
   --main-bg: light-dark(#ffffff, #000000);

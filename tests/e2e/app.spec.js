@@ -20,10 +20,13 @@ async function canvasBox(page) {
   return page.locator('canvas.reasons-canvas').boundingBox();
 }
 
+async function scaleOf(page) {
+  return Number(await page.locator('main.workspace').getAttribute('data-scale'));
+}
+
 async function screenPoint(page, world) {
   const box = await canvasBox(page);
-  const level = await page.locator('.zoom .level').textContent();
-  const scale = parseInt(level, 10) / 100;
+  const scale = await scaleOf(page);
   return { x: box.x + box.width / 2 + world.x * scale, y: box.y + box.height / 2 + world.y * scale };
 }
 
@@ -40,10 +43,11 @@ test.beforeEach(async ({ page }) => {
 test('loads the default argument', async ({ page }) => {
   await expect(page).toHaveTitle('Think Why?');
   expect(await counts(page)).toEqual({ nodes: 3, edges: 1 });
-  await expect(page.getByRole('link', { name: 'Steve' })).toHaveAttribute('href', 'https://stevehoang.com');
+  await expect(page.getByRole('button', { name: 'Switch mode' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Redo' })).toBeDisabled();
-  await expect(page.locator('.zoom .level')).toHaveText(/\d+%/);
+  expect(await scaleOf(page)).toBeGreaterThan(0);
+  await expect(page.locator('.topbar, .breadcrumb, .zoom')).toHaveCount(0);
 });
 
 test('adds an idea by double-clicking empty space and saves it', async ({ page }) => {
@@ -117,18 +121,21 @@ test('keyboard selects, deletes, undoes and empties the map', async ({ page }) =
     await page.keyboard.press('Backspace');
   }
   await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '0');
-  await expect(page.locator('.hint')).toContainText('Double-click anywhere to add a premise.');
-  await page.getByRole('button', { name: 'Fit to view' }).click();
-  await expect(page.locator('.zoom .level')).toHaveText('100%');
+  await page.keyboard.press('0');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-scale', '1.000');
 });
 
-test('zoom controls change the level and fit restores it', async ({ page }) => {
-  const level = page.locator('.zoom .level');
-  const before = await level.textContent();
-  await page.getByRole('button', { name: 'Zoom in' }).click();
-  await expect(level).not.toHaveText(before);
-  await page.getByRole('button', { name: 'Fit to view' }).click();
-  await expect(level).toHaveText(before);
+test('zooms with the keyboard and the wheel, and fits back', async ({ page }) => {
+  const main = page.locator('main.workspace');
+  const before = await main.getAttribute('data-scale');
+  await page.keyboard.press('+');
+  await expect(main).not.toHaveAttribute('data-scale', before);
+  await page.keyboard.press('0');
+  await expect(main).toHaveAttribute('data-scale', before);
+  const box = await canvasBox(page);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.wheel(0, -200);
+  await expect.poll(() => scaleOf(page)).toBeGreaterThan(Number(before));
 });
 
 test('switches between light and dark mode', async ({ page }) => {
@@ -147,7 +154,8 @@ test('shows the menu tips on hover', async ({ page }) => {
   await page.getByRole('button', { name: 'Help' }).hover();
   await expect(tips).toBeVisible();
   await expect(tips).toContainText('Double-click empty space to add an idea.');
-  await page.getByRole('button', { name: 'Zoom in' }).hover();
+  const box = await canvasBox(page);
+  await page.mouse.move(box.x + box.width / 2, box.y + 40);
   await expect(tips).toBeHidden();
 });
 

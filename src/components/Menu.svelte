@@ -1,6 +1,7 @@
 <script>
   import Icon from './Icon.svelte';
   import { actions, map } from '../lib/map.svelte.js';
+  import { flipTheme, theme } from '../lib/theme.svelte.js';
 
   let tips = $state(false);
 </script>
@@ -46,6 +47,10 @@
       onblur={() => (tips = false)}
     >
       <Icon name="help" />
+    </button>
+    <button type="button" class="item mode" title="Switch mode" aria-label="Switch mode" onclick={flipTheme}>
+      <Icon name="sun" class="mode-icon {theme.mode === 'light' ? 'shown' : ''}" />
+      <Icon name="moon" class="mode-icon {theme.mode === 'dark' ? 'shown' : ''}" />
     </button>
   </div>
 
@@ -112,6 +117,25 @@
 
   .item:disabled:hover {
     color: var(--site-btn-color);
+  }
+
+  .mode {
+    display: grid;
+    place-items: center;
+  }
+
+  .mode :global(.mode-icon) {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: rotate(70deg) scale(0.55);
+    transition:
+      opacity 0.5s cubic-bezier(0.45, 0, 0.55, 1),
+      transform 0.5s cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  .mode :global(.mode-icon.shown) {
+    opacity: 1;
+    transform: rotate(0) scale(1);
   }
 
   .tips {

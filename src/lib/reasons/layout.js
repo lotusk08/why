@@ -30,25 +30,44 @@ export function boundaryPoint(from, rect, buffer = 0) {
   return { x: rect.x + ux * t, y: rect.y + uy * t };
 }
 
+const ARROW_GAP = 1;
+
+function midpoint(segment) {
+  return { x: (segment.x1 + segment.x2) / 2, y: (segment.y1 + segment.y2) / 2 };
+}
+
 export function routeEdge(edge, graph) {
   const sources = edge.from.map((id) => graph.find(id)).filter((n) => n && n.kind === 'node');
   const target = graph.find(edge.to);
   if (!sources.length || !target || target.kind !== 'node') {
     edge.paths = [];
     edge.center = null;
+    edge.labelAt = null;
     return;
   }
-  const all = [...sources, target];
-  const xs = all.map((n) => n.x);
-  const ys = all.map((n) => n.y);
-  const center = {
-    x: (Math.min(...xs) + Math.max(...xs)) / 2,
-    y: (Math.min(...ys) + Math.max(...ys)) / 2
-  };
-  edge.center = center;
-  edge.paths = sources.map((n) => ({ x1: n.x, y1: n.y, x2: center.x, y2: center.y }));
-  const end = boundaryPoint(center, target, 6);
-  edge.paths.push({ x1: center.x, y1: center.y, x2: end.x, y2: end.y });
+  if (sources.length === 1) {
+    const source = sources[0];
+    const start = boundaryPoint(target, source, 0);
+    const end = boundaryPoint(source, target, ARROW_GAP);
+    edge.paths = [{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }];
+    edge.center = midpoint(edge.paths[0]);
+  } else {
+    const all = [...sources, target];
+    const xs = all.map((n) => n.x);
+    const ys = all.map((n) => n.y);
+    const junction = {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2
+    };
+    edge.center = junction;
+    edge.paths = sources.map((n) => {
+      const start = boundaryPoint(junction, n, 0);
+      return { x1: start.x, y1: start.y, x2: junction.x, y2: junction.y };
+    });
+    const end = boundaryPoint(junction, target, ARROW_GAP);
+    edge.paths.push({ x1: junction.x, y1: junction.y, x2: end.x, y2: end.y });
+  }
+  edge.labelAt = midpoint(edge.paths[edge.paths.length - 1]);
 }
 
 export function arrowHead(segment, size = 9) {
@@ -79,9 +98,9 @@ export function rectsOverlap(a, b) {
 
 export function edgeHit(edge, p, tolerance) {
   if (!edge.center) return false;
-  if (edge.label) {
+  if (edge.label && edge.labelAt) {
     const halfWidth = edge.label.width / 2 + 4;
-    if (Math.abs(p.x - edge.center.x) <= halfWidth && Math.abs(p.y - edge.center.y) <= 10) return true;
+    if (Math.abs(p.x - edge.labelAt.x) <= halfWidth && Math.abs(p.y - edge.labelAt.y) <= 10) return true;
   }
   return edge.paths.some((segment) => distanceToSegment(p, segment) <= tolerance);
 }

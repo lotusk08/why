@@ -29,7 +29,7 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 
 Three-finger swipes undo and redo on touch screens.
 
-The map is saved in the browser as you go. **Copy link** compresses the whole map into the address, so anyone with the link opens the same argument; links made with the previous version keep working. **Save as image** renders the map to a PNG in the current theme. The theme follows the system and can be flipped from the top bar, as on [stevehoang.com](https://stevehoang.com).
+The map is saved in the browser as you go. **Copy link** compresses the whole map into the address, so anyone with the link opens the same argument; links made with the previous version keep working. **Save as image** renders the map to a PNG in the current theme. Everything else lives in the floating menu: undo, redo, save as image, copy link, help, and the light/dark switch. The theme follows the system until you flip it, as on [stevehoang.com](https://stevehoang.com).
 
 ## Develop
 
