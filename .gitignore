@@ -1,0 +1,11 @@
+dist
+node_modules
+package-lock.json
+.vite
+playwright-report
+test-results
+.idea
+.vscode
+*~
+Thumbs.db
+.DS_Store

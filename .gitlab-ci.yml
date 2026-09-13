@@ -1,8 +1,10 @@
+image: node:22
+
 pages:
   script:
-    - mkdir .public
-    - cp -r * .public
-    - mv .public public
+    - npm i
+    - npm run build
+    - mv dist public
   artifacts:
     paths:
       - public

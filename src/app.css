@@ -1,0 +1,344 @@
+@font-face {
+  font-family: 'Inter Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-display-latin-400-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-display-latin-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-display-vietnamese-400-normal.woff2') format('woff2');
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309,
+    U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+
+@font-face {
+  font-family: 'Inter Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-display-vietnamese-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309,
+    U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/newsreader-latin-400-italic.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/newsreader-vietnamese-400-italic.woff2') format('woff2');
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309,
+    U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+
+:root {
+  color-scheme: light dark;
+  font-size: clamp(16px, calc(13.2px + 0.48vw), 18px);
+  --font-ui: ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Newsreader', serif;
+  --font-sans: -apple-system, 'BlinkMacSystemFont', 'Inter Display', sans-serif;
+  --radius-xs: 4px;
+  --radius-sm: 0.2rem;
+  --radius-lg: 10px;
+  --topbar-height: 3rem;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ease-swap: cubic-bezier(0.25, 0.4, 0.75, 0.6);
+  --main-bg: light-dark(#ffffff, #000000);
+  --main-border-color: light-dark(#f3f3f3, rgb(44 45 45));
+  --primary-color: light-dark(#0d6efd, #fd7e14);
+  --secondary-color: light-dark(#0056b2, #c67839);
+  --text-color: light-dark(rgb(111 111 111), #cecdcd);
+  --heading-color: light-dark(#4f4f4f, #d7d5d3);
+  --text-muted-color: light-dark(#757575, #868686);
+  --site-btn-color: light-dark(#8e8e8e, #787878);
+  --site-hover-bg: light-dark(rgb(223 233 241 / 64%), #262626);
+  --btn-border-color: light-dark(#efefef, #292929);
+  --input-focus-border-color: light-dark(#b8b8b8, rgb(112 114 115));
+  --card-ring: light-dark(rgb(211 209 209 / 15%), rgb(137 135 135 / 24%));
+  --card-shadow: var(--card-ring) 0 0 0 1px;
+  --popup-border-color: light-dark(#d3d3d3, #373737);
+  --kbd-bg-color: light-dark(#ffffff, #242424);
+  --kbd-wrap-color: light-dark(rgb(189 189 189), #6a6a6a);
+  --tooltip-bg: rgb(16 16 16 / 95%);
+  --danger-color: light-dark(#da3633, #e5484d);
+  --selection-color: light-dark(rgb(212 150 90 / 16%), rgb(212 150 90 / 26%));
+  --canvas-node-bg: light-dark(#ffffff, #141414);
+  --canvas-node-border: light-dark(#d4d4d4, #3a3a3a);
+  --canvas-node-text: light-dark(#4f4f4f, #d7d5d3);
+  --canvas-edge: light-dark(#b3b3b3, #5a5a5a);
+  --canvas-edge-text: light-dark(#868686, #868686);
+  --canvas-focus: var(--primary-color);
+  --canvas-hover: light-dark(#8e8e8e, #a0a0a0);
+  --canvas-objection: var(--danger-color);
+  --canvas-placeholder: light-dark(#b5b5b5, #5a5a5a);
+}
+
+:root[data-mode='light'] {
+  color-scheme: light;
+}
+
+:root[data-mode='dark'] {
+  color-scheme: dark;
+}
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--main-bg) url('/grain.png') repeat 0 0 / 100px 100px;
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgb(0 0 0 / 0%);
+  text-rendering: optimizelegibility;
+}
+
+::selection {
+  background-color: var(--selection-color);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+strong,
+b {
+  font-weight: 600;
+}
+
+em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.2em;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 1px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.75rem;
+  margin: 0 0.15rem;
+  padding: 0.1rem 0.375rem 0.1875rem;
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  font-weight: 500;
+  line-height: 1.3rem;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--text-color);
+  background-color: var(--kbd-bg-color);
+  border: 1px solid var(--kbd-wrap-color);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 -1.5px 0 var(--kbd-wrap-color);
+}
+
+dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--text-color);
+  background: var(--main-bg) url('/grain.png') repeat 0 0 / 100px 100px;
+  border: 1px solid var(--popup-border-color);
+  border-radius: var(--radius-lg);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 8%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+dialog[open] {
+  animation: slide-enter 0.3s ease-out;
+}
+
+.dialog-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+  background: var(--main-bg) url('/grain.png') repeat 0 0 / 100px 100px;
+  border-bottom: 1px solid var(--main-border-color);
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--heading-color);
+}
+
+.dialog-body {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--site-btn-color);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  color: var(--primary-color);
+  background-color: var(--site-hover-bg);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--text-color);
+  border: 1px solid var(--btn-border-color);
+  border-radius: var(--radius-xs);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.btn:hover {
+  color: var(--primary-color);
+  background-color: var(--site-hover-bg);
+}
+
+.btn.primary {
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn.primary:hover {
+  color: #ffffff;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.btn.danger {
+  color: var(--danger-color);
+  border-color: transparent;
+}
+
+.btn.danger:hover {
+  color: var(--danger-color);
+  background-color: color-mix(in srgb, var(--danger-color) 10%, transparent);
+}
+
+@keyframes slide-enter {
+  0% {
+    translate: 0 10px;
+    opacity: 0;
+  }
+
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

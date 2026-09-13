@@ -1,0 +1,69 @@
+{
+  "name": "why",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Think Why? is a tool to map arguments: premises, objections and conclusions on a canvas",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lotusk08/why.git"
+  },
+  "author": "Steve Hoang",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --fail-on-warnings",
+    "lint": "eslint . && prettier --check .",
+    "fix": "eslint --fix . && prettier --write .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "qc": "npm run lint && npm run check && npm test && npm run build && npm run test:e2e",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.56.1",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-svelte": "^3.23.0",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.57.0",
+    "svelte-check": "^4.7.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": true,
+    "printWidth": 120,
+    "trailingComma": "none",
+    "plugins": [
+      "prettier-plugin-svelte"
+    ],
+    "overrides": [
+      {
+        "files": "*.svelte",
+        "options": {
+          "parser": "svelte"
+        }
+      }
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
+}

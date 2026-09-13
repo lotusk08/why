@@ -1,0 +1,16 @@
+{
+  "name": "Think Why?",
+  "short_name": "Why?",
+  "description": "Map an argument: premises, objections and a conclusion, linked on one canvas.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "en",
+  "icons": [
+    { "src": "/icon-180x180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

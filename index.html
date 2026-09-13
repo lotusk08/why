@@ -1,66 +1,50 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta property="og:image" content="/static/argument-map.jpeg" />
-  <meta property="og:image:type" content="image/jpeg" />
-  <meta property="og:image:width" content="2400" />
-  <meta property="og:image:height" content="1256" />
-  <meta property="og:image:alt" content="Tool to create argument schemes" />
-  <title>Think Why?</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="icon" href="/static/favicon.ico" sizes="32x32">
-  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/static/icon-180x180.png">
-  <link rel="manifest" href="/static/manifest.json">
-</head>
-<body>
-  <nav>
-    <div class="menu-container">
-      <div class="menu-actions">
-        <button class="menu-button" title="Save">
-          <i class="fas fa-save"></i>
-        </button>
-        <button class="menu-button" title="Share">
-          <i class="fas fa-link"></i>
-        </button>
-        <div class="tooltip">
-          <button class="menu-button" title="Help">
-            <i class="fas fa-info-circle"></i>
-          </button>
-          <div class="tooltiptext">
-            <ul>
-              <li>To create a premise or objection: Double-click on the screen.</li>
-              <li>To create a link between an argument (premise or objection) and an idea: Drag and drop the argument onto the idea.</li>
-              <li>To create linked premises: Drag and drop each premise onto the conclusion, then one premise onto the other.</li>
-              <li>To navigate through the argument: Tab key.</li>
-              <li>To edit an element: Enter or Double-click on the element.</li>
-              <li>To delete an element: Delete or Backspace key.</li>
-              <li>Mouse: You can move or zoom on the argument.</li>
-              <li>Undo: Cmd+Z</li>
-              <li>To save: Click on <i class="fas fa-save"></i></li>
-              <li>To share: Click on <i class="fas fa-link"></i> to get the URL of the argument.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <div id="myModal" class="modal">
-    <div id="modal-content" class="modal-content">
-      <span id="closeModal" class="close">×</span>
-      <h3>Link to this argument</h3>
-      <textarea id="codageArgument" readonly></textarea>
-    </div>
-  </div>
-
-  <div id="element"></div>
-  <div id="element-test" style="display:none"></div>
-
-  <script src="reasons.min.js"></script>
-  <script src="custom.min.js"></script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Think Why?</title>
+    <meta
+      name="description"
+      content="Map an argument: lay out premises, objections and a conclusion, link them, then share the map as a link or an image."
+    />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Why?" />
+    <meta name="application-name" content="Think Why?" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Think Why?" />
+    <meta
+      property="og:description"
+      content="Map an argument: premises, objections and a conclusion, linked on one canvas."
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="An argument map with two premises supporting a conclusion" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180x180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/newsreader-latin-400-italic.woff2" crossorigin />
+    <script>
+      (function () {
+        try {
+          var mode = sessionStorage.getItem('mode');
+          if (mode === 'light' || mode === 'dark') document.documentElement.setAttribute('data-mode', mode);
+        } catch {
+          return;
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
