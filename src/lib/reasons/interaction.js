@@ -82,7 +82,10 @@ export function attachInteraction(canvas, ctl) {
       return;
     }
 
-    if (hit?.kind === 'node') {
+    if (hit && e.shiftKey) {
+      gesture = { type: 'select', element: hit };
+      ctl.toggle(hit);
+    } else if (hit?.kind === 'node') {
       gesture = {
         type: 'drag',
         node: hit,
@@ -194,6 +197,11 @@ export function attachInteraction(canvas, ctl) {
       ctl.redo();
       return;
     }
+    if (meta && key.toLowerCase() === 'a') {
+      e.preventDefault();
+      ctl.selectAll();
+      return;
+    }
     if (meta) return;
 
     switch (key) {
@@ -210,9 +218,9 @@ export function attachInteraction(canvas, ctl) {
         break;
       case 'Delete':
       case 'Backspace':
-        if (ctl.focused()) {
+        if (ctl.hasSelection()) {
           e.preventDefault();
-          ctl.remove(ctl.focused());
+          ctl.removeSelected();
         }
         break;
       case 'Escape':

@@ -209,6 +209,31 @@ test('keyboard selects, deletes, undoes and empties the map', async ({ page }) =
   await expect(page.locator('main.workspace')).toHaveAttribute('data-scale', '1.000');
 });
 
+test('selects everything with the keyboard and deletes it, and the eraser clears the map', async ({ page }) => {
+  const box = await canvasBox(page);
+  await page.mouse.click(box.x + 40, box.y + 40);
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Delete');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '0');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-edges', '0');
+  await expect(page.getByRole('button', { name: 'Clear the map' })).toBeDisabled();
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '3');
+
+  const premise = await screenPoint(page, P1);
+  await page.keyboard.down('Shift');
+  await page.mouse.click(premise.x, premise.y);
+  await page.keyboard.up('Shift');
+  await page.keyboard.press('Backspace');
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '2');
+
+  await page.getByRole('button', { name: 'Clear the map' }).click();
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '0');
+  await expect(page.locator('.toast')).toHaveText('Map cleared. Undo brings it back.');
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.locator('main.workspace')).toHaveAttribute('data-nodes', '2');
+});
+
 test('zooms with the keyboard and the wheel, and fits back', async ({ page }) => {
   const main = page.locator('main.workspace');
   const before = await main.getAttribute('data-scale');

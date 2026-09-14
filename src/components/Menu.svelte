@@ -28,6 +28,16 @@
     >
       <Icon name="redo" />
     </button>
+    <button
+      type="button"
+      class="item"
+      title="Clear the map"
+      aria-label="Clear the map"
+      disabled={!map.nodes}
+      onclick={actions.clear}
+    >
+      <Icon name="eraser" />
+    </button>
     <button type="button" class="item" title="Save as image" aria-label="Save as image" onclick={actions.saveImage}>
       <Icon name="download" />
     </button>
@@ -61,7 +71,7 @@
       <li>Drag an idea onto another to link them. Drag it back the other way and the link goes both ways.</li>
       <li>Drag each premise onto the conclusion, then one premise onto the other, to make them argue together.</li>
       <li>Drag the background to move around. Scroll or pinch to zoom.</li>
-      <li>Tab moves through the ideas. Enter edits, Delete removes, ⌘Z undoes.</li>
+      <li>Tab moves through the ideas. Enter edits, Delete removes, ⌘A selects everything, ⌘Z undoes.</li>
       <li><Icon name="download" /> saves an image. <Icon name="link" /> copies a link to this argument.</li>
       <li>Click <Icon name="help" /> for every shortcut.</li>
     </ul>
@@ -197,6 +207,21 @@
 
     .tips {
       width: 250px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .menu {
+      padding: 4px 12px;
+    }
+
+    .actions {
+      gap: 6px;
+    }
+
+    .item {
+      width: 32px;
+      height: 32px;
     }
   }
 </style>

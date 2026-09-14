@@ -97,6 +97,21 @@ export class Graph {
     return el;
   }
 
+  toggle(el) {
+    if (!this.elements.includes(el)) return null;
+    el.focused = !el.focused;
+    return el;
+  }
+
+  selectAll() {
+    this.visible.forEach((e) => (e.focused = true));
+    return this.selected;
+  }
+
+  get selected() {
+    return this.elements.filter((e) => e.focused && !e.mirror);
+  }
+
   focusNext() {
     const list = this.visible;
     if (!list.length) return null;

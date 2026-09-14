@@ -4,7 +4,16 @@ import { decodeHash, encodeMap, validateMap } from './share.js';
 import { downloadBlob } from './download.js';
 import { DEFAULT_MAP } from './defaults.js';
 
-const initialMapState = { ready: false, canUndo: false, canRedo: false, scale: 1, nodes: 0, edges: 0, focused: null };
+const initialMapState = {
+  ready: false,
+  canUndo: false,
+  canRedo: false,
+  scale: 1,
+  nodes: 0,
+  edges: 0,
+  selected: 0,
+  focused: null
+};
 const initialUiState = { editing: null, help: false, toast: '' };
 
 export const map = $state(initialMapState);
@@ -75,6 +84,11 @@ export const actions = {
   zoomOut: () => mapper?.zoomOut(),
   fit: () => mapper?.fit(),
   refreshTheme: () => mapper?.refreshTheme(),
+  clear() {
+    if (!mapper || !map.nodes) return;
+    mapper.clear();
+    toast('Map cleared. Undo brings it back.');
+  },
   openHelp: () => (ui.help = true),
   closeHelp: () => (ui.help = false),
   async saveImage() {

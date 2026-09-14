@@ -53,8 +53,12 @@
         <dd>Move through the ideas</dd>
         <dt><kbd>Enter</kbd></dt>
         <dd>Edit the selected idea</dd>
+        <dt><kbd>⌘ A</kbd></dt>
+        <dd>Select everything</dd>
+        <dt><kbd>⇧</kbd> click</dt>
+        <dd>Add an idea to the selection</dd>
         <dt><kbd>⌫</kbd></dt>
-        <dd>Delete the selected idea</dd>
+        <dd>Delete what is selected</dd>
         <dt><kbd>⌘ Z</kbd> <kbd>⇧ ⌘ Z</kbd></dt>
         <dd>Undo and redo</dd>
         <dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></dt>
@@ -65,6 +69,10 @@
         <dd>Deselect</dd>
       </dl>
 
+      <p class="note">
+        On Windows and Linux, <kbd>Ctrl</kbd> stands in for <kbd>⌘</kbd>. The eraser in the menu clears the whole map,
+        and Undo brings it back.
+      </p>
       <p class="note">
         The map is saved in this browser as you go. <strong>Copy link</strong> puts the whole map in the address, so anyone
         with the link opens the same argument.

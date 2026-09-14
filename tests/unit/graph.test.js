@@ -127,6 +127,20 @@ describe('Graph', () => {
     expect(seen).not.toContain(backward);
   });
 
+  it('selects everything, toggles single ideas, and skips hidden halves', () => {
+    const graph = new Graph(base());
+    graph.add({ from: 'a', to: 'c' });
+    graph.add({ from: 'c', to: 'a' });
+    expect(graph.selectAll()).toHaveLength(4);
+    expect(graph.selected.every((e) => !e.mirror)).toBe(true);
+    graph.toggle(graph.find('a'));
+    expect(graph.selected.map((e) => e.id)).not.toContain('a');
+    graph.unfocus();
+    graph.toggle(graph.find('b'));
+    graph.toggle(graph.find('c'));
+    expect(graph.selected.map((e) => e.id)).toEqual(['b', 'c']);
+  });
+
   it('keeps the export stable while focus moves', () => {
     const graph = new Graph(base());
     const before = JSON.stringify(graph.export());

@@ -65,6 +65,7 @@ export function createMapper(container, options) {
       scale: camera.scale,
       nodes: graph.nodes.length,
       edges: graph.edges.length,
+      selected: graph.selected.length,
       focused: graph.focused?.id ?? null
     });
   }
@@ -232,6 +233,25 @@ export function createMapper(container, options) {
       publish();
       requestDraw();
     },
+    toggle(el) {
+      graph.toggle(el);
+      publish();
+      requestDraw();
+    },
+    selectAll() {
+      graph.selectAll();
+      publish();
+      requestDraw();
+    },
+    hasSelection: () => graph.selected.length > 0,
+    removeSelected() {
+      const selected = graph.selected;
+      if (!selected.length) return;
+      hovered = null;
+      selected.filter((el) => el.kind === 'node').forEach((node) => graph.remove(node));
+      selected.filter((el) => el.kind === 'edge' && graph.elements.includes(el)).forEach((edge) => ctl.remove(edge));
+      commit();
+    },
     drag(node, position) {
       placeNode(node, position);
       view.canvas.style.cursor = 'grabbing';
@@ -330,6 +350,12 @@ export function createMapper(container, options) {
       commit();
     },
     remove: ctl.remove,
+    clear() {
+      if (!graph.elements.length) return;
+      graph = new Graph([]);
+      hovered = null;
+      commit();
+    },
     detach(id, sourceId) {
       const edge = graph.find(id);
       if (!edge) return {};
