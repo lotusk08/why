@@ -1,5 +1,6 @@
 export const NODE_WIDTH = 200;
 export const NODE_MIN_HEIGHT = 56;
+export const NODE_COLORS = ['orange', 'yellow', 'green', 'teal', 'blue', 'magenta'];
 
 export function uid() {
   return Math.random().toString(36).slice(2, 7);
@@ -11,6 +12,10 @@ export function isEdgeData(data) {
 
 function refId(value) {
   return value && typeof value === 'object' ? value.id : value;
+}
+
+export function nodeColor(value) {
+  return NODE_COLORS.includes(value) ? value : '';
 }
 
 export function placeNode(node, center) {
@@ -29,9 +34,11 @@ export function createNode(data = {}) {
     kind: 'node',
     text: typeof data.text === 'string' ? data.text : '',
     lineType: data.lineType === 'dashed' ? 'dashed' : 'solid',
+    color: nodeColor(data.color),
     width: NODE_WIDTH,
     height: NODE_MIN_HEIGHT,
     lines: [],
+    measured: null,
     focused: false,
     hovering: false,
     x: 0,
@@ -75,5 +82,6 @@ export function exportElement(el) {
   if (el.kind === 'edge') {
     return { id: el.id, type: el.type, from: [...el.from], to: el.to };
   }
-  return { id: el.id, text: el.text, x: Math.round(el.x), y: Math.round(el.y), lineType: el.lineType };
+  const node = { id: el.id, text: el.text, x: Math.round(el.x), y: Math.round(el.y), lineType: el.lineType };
+  return el.color ? { ...node, color: el.color } : node;
 }

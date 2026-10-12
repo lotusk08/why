@@ -36,7 +36,7 @@
       <h3>Mouse &amp; touch</h3>
       <ul>
         <li><strong>Double-click</strong> empty space to add an idea.</li>
-        <li><strong>Double-click</strong> an idea or a link to edit it.</li>
+        <li><strong>Double-click</strong> an idea or a link to edit it. Ideas can take a colour too.</li>
         <li>
           <strong>Drag</strong> an idea onto another to link them. Drag it back the other way and the link goes both ways.
         </li>
@@ -53,6 +53,10 @@
         <dd>Move through the ideas</dd>
         <dt><kbd>Enter</kbd></dt>
         <dd>Edit the selected idea</dd>
+        <dt><kbd>N</kbd></dt>
+        <dd>Add an idea next to the selected one</dd>
+        <dt><kbd>L</kbd></dt>
+        <dd>Link the selected idea: <kbd>Tab</kbd> picks, <kbd>Enter</kbd> links</dd>
         <dt><kbd>⌘ A</kbd></dt>
         <dd>Select everything</dd>
         <dt><kbd>⇧</kbd> click</dt>
@@ -62,20 +66,29 @@
         <dt><kbd>⌘ Z</kbd> <kbd>⇧ ⌘ Z</kbd></dt>
         <dd>Undo and redo</dd>
         <dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></dt>
-        <dd>Nudge the selected idea</dd>
+        <dd>Nudge the selected idea, or pan</dd>
         <dt><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd></dt>
         <dd>Zoom in, out, fit</dd>
         <dt><kbd>Esc</kbd></dt>
         <dd>Deselect</dd>
+        <dt><kbd>F6</kbd></dt>
+        <dd>Jump between the map and the menu</dd>
+        <dt><kbd>⇧ ⌘ L</kbd></dt>
+        <dd>Copy a link to the map</dd>
+        <dt><kbd>⌘ S</kbd> <kbd>⇧ ⌘ S</kbd></dt>
+        <dd>Save as SVG, as PNG</dd>
+        <dt><kbd>⌘ P</kbd></dt>
+        <dd>Save as PDF</dd>
       </dl>
 
       <p class="note">
-        On Windows and Linux, <kbd>Ctrl</kbd> stands in for <kbd>⌘</kbd>. The eraser in the menu clears the whole map,
-        and Undo brings it back.
+        On Windows and Linux, <kbd>Ctrl</kbd> stands in for <kbd>⌘</kbd>. The eraser in the menu clears the map or
+        brings back the demo, and Undo brings your map back.
       </p>
       <p class="note">
-        The map is saved in this browser as you go. <strong>Copy link</strong> puts the whole map in the address, so anyone
-        with the link opens the same argument.
+        The map is saved in this browser as you go. <strong>Share</strong> copies a link with the whole map in the address,
+        so anyone with the link opens the same argument, or saves the map as PNG, SVG or PDF. PDF opens the print dialog:
+        pick Save as PDF.
       </p>
       <p class="credits">
         Built on Reasons.js by Dave Kinkead.

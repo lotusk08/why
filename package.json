@@ -1,6 +1,6 @@
 {
   "name": "why",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "type": "module",
   "private": true,
   "description": "Think Why? is a tool to map arguments: premises, objections and conclusions on a canvas",

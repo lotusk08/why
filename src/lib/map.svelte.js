@@ -2,6 +2,7 @@ import { createMapper } from './reasons/index.js';
 import { loadMap, saveMap } from './storage.js';
 import { decodeHash, encodeMap, validateMap } from './share.js';
 import { downloadBlob } from './download.js';
+import { printSvg } from './print.js';
 import { DEFAULT_MAP } from './defaults.js';
 
 const initialMapState = {
@@ -14,7 +15,15 @@ const initialMapState = {
   selected: 0,
   focused: null
 };
+const XML_PROLOG = '<?xml version="1.0" encoding="UTF-8"?>\n';
 const initialUiState = { editing: null, help: false, toast: '' };
+const NOTICES = {
+  'both-ways': 'Linked both ways',
+  duplicate: 'Already linked',
+  'link-start': 'Tab picks an idea, Enter links, Esc cancels',
+  'link-none': 'Select an idea first, then press L',
+  'link-alone': 'Add another idea to link to'
+};
 
 export const map = $state(initialMapState);
 export const ui = $state(initialUiState);
@@ -33,7 +42,13 @@ function persist(json) {
   clearHash();
 }
 
-export function toast(message) {
+function hasIdeas() {
+  if (mapper && map.nodes) return true;
+  toast('Add an idea first');
+  return false;
+}
+
+function toast(message) {
   ui.toast = message;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (ui.toast = ''), 2200);
@@ -54,8 +69,7 @@ export function mountMap(container, elements) {
     onState: (state) => Object.assign(map, state),
     onChange: persist,
     onNotice: (kind) => {
-      if (kind === 'both-ways') toast('Linked both ways');
-      else if (kind === 'duplicate') toast('Already linked');
+      if (NOTICES[kind]) toast(NOTICES[kind]);
     },
     onEdit: (el, isNew, details) => {
       ui.editing = {
@@ -63,6 +77,7 @@ export function mountMap(container, elements) {
         kind: el.kind,
         text: el.kind === 'node' ? el.text : el.type,
         lineType: el.lineType ?? 'solid',
+        color: el.color ?? '',
         isNew,
         ...details
       };
@@ -84,21 +99,36 @@ export const actions = {
   zoomOut: () => mapper?.zoomOut(),
   fit: () => mapper?.fit(),
   refreshTheme: () => mapper?.refreshTheme(),
+  focusMap: () => mapper?.focusMap(),
   clear() {
     if (!mapper || !map.nodes) return;
     mapper.clear();
     toast('Map cleared. Undo brings it back.');
   },
+  reset() {
+    if (!mapper) return;
+    mapper.replace(DEFAULT_MAP);
+    toast('Demo restored. Undo brings your map back.');
+  },
   openHelp: () => (ui.help = true),
   closeHelp: () => (ui.help = false),
-  async saveImage() {
-    const blob = await mapper?.toPNG();
+  async savePng() {
+    if (!hasIdeas()) return;
+    const blob = await mapper.toPNG();
     if (!blob) {
-      toast('Add an idea first');
+      toast('Too big for a PNG. Try SVG.');
       return;
     }
     downloadBlob(blob, 'argument-map.png');
-    toast('Image saved');
+    toast('PNG saved');
+  },
+  saveSvg() {
+    if (!hasIdeas()) return;
+    downloadBlob(new Blob([XML_PROLOG, mapper.toSVG().markup], { type: 'image/svg+xml' }), 'argument-map.svg');
+    toast('SVG saved');
+  },
+  savePdf() {
+    if (hasIdeas()) printSvg(mapper.toSVG());
   },
   async share() {
     if (!mapper) return;
@@ -111,12 +141,12 @@ export const actions = {
       toast('Link is in the address bar');
     }
   },
-  submitEdit(text, lineType, direction) {
+  submitEdit(text, lineType, direction, color) {
     const editing = ui.editing;
     if (!editing || !mapper) return;
     const value = text.trim();
     if (editing.kind === 'node') {
-      if (value) mapper.update(editing.id, { text: value, lineType });
+      if (value) mapper.update(editing.id, { text: value, lineType, color });
       else mapper.remove(editing.id);
     } else {
       mapper.update(editing.id, { type: value, direction: editing.joint ? undefined : direction });

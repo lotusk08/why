@@ -45,6 +45,18 @@ describe('validateMap', () => {
     ]);
   });
 
+  it('keeps known idea colours and drops unknown ones', () => {
+    expect(
+      validateMap([
+        { id: 'a', text: 'A', x: 0, y: 0, color: 'teal' },
+        { id: 'b', text: 'B', x: 0, y: 0, color: 'red' }
+      ])
+    ).toEqual([
+      { id: 'a', text: 'A', x: 0, y: 0, lineType: 'solid', color: 'teal' },
+      { id: 'b', text: 'B', x: 0, y: 0, lineType: 'solid' }
+    ]);
+  });
+
   it('rejects anything that is not a list of elements', () => {
     expect(validateMap(null)).toBeNull();
     expect(validateMap({})).toBeNull();

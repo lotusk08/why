@@ -2,6 +2,9 @@ const TAP_SLOP = 6;
 const DOUBLE_TAP_MS = 350;
 const DOUBLE_TAP_DISTANCE = 24;
 const SWIPE_DISTANCE = 80;
+const NUDGE_STEP = 10;
+const PAN_STEP = 50;
+const ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -45,6 +48,7 @@ export function attachInteraction(canvas, ctl) {
   function onPointerDown(e) {
     if (ctl.blocked()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    ctl.cancelLink();
     e.preventDefault();
     pointers.set(e.pointerId, { ...client(e), start: client(e) });
     capture(e.pointerId);
@@ -181,6 +185,18 @@ export function attachInteraction(canvas, ctl) {
     ctl.zoomAt(Math.exp(-e.deltaY * step), client(e));
   }
 
+  function onMap(e) {
+    return e.target === canvas || e.target === document.body || e.target === document.documentElement;
+  }
+
+  function onLinkKey(e) {
+    if (e.key === 'Tab') ctl.pickLink(e.shiftKey ? -1 : 1);
+    else if (e.key === 'Enter') ctl.finishLink();
+    else if (e.key === 'Escape') ctl.cancelLink();
+    else return;
+    e.preventDefault();
+  }
+
   function onKeyDown(e) {
     if (ctl.blocked() || typing()) return;
     const meta = e.metaKey || e.ctrlKey;
@@ -197,12 +213,17 @@ export function attachInteraction(canvas, ctl) {
       ctl.redo();
       return;
     }
+    if (!onMap(e)) return;
     if (meta && key.toLowerCase() === 'a') {
       e.preventDefault();
       ctl.selectAll();
       return;
     }
-    if (meta) return;
+    if (meta || e.altKey) return;
+    if (ctl.linking()) {
+      onLinkKey(e);
+      return;
+    }
 
     switch (key) {
       case 'Tab':
@@ -226,6 +247,16 @@ export function attachInteraction(canvas, ctl) {
       case 'Escape':
         ctl.unfocus();
         break;
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        ctl.createNear();
+        break;
+      case 'l':
+      case 'L':
+        e.preventDefault();
+        ctl.startLink();
+        break;
       case '+':
       case '=':
         ctl.zoomIn();
@@ -241,13 +272,16 @@ export function attachInteraction(canvas, ctl) {
       case 'ArrowDown':
       case 'ArrowLeft':
       case 'ArrowRight': {
-        const focused = ctl.focused();
-        if (focused?.kind !== 'node') break;
         e.preventDefault();
-        const step = e.shiftKey ? 40 : 10;
-        const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;
-        const dy = key === 'ArrowUp' ? -step : key === 'ArrowDown' ? step : 0;
-        ctl.nudge(focused, dx, dy);
+        const [dx, dy] = ARROWS[key];
+        const focused = ctl.focused();
+        if (focused?.kind === 'node') {
+          const step = e.shiftKey ? NUDGE_STEP * 4 : NUDGE_STEP;
+          ctl.nudge(focused, dx * step, dy * step);
+        } else {
+          const step = e.shiftKey ? PAN_STEP * 4 : PAN_STEP;
+          ctl.panBy(dx * step, dy * step);
+        }
         break;
       }
       default:

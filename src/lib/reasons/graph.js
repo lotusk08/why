@@ -4,6 +4,10 @@ function unique(list) {
   return [...new Set(list)];
 }
 
+function pairKey(from, to) {
+  return `${from}\u0000${to}`;
+}
+
 function sameSet(a, b) {
   return a.length === b.length && a.every((id) => b.includes(id));
 }
@@ -11,17 +15,32 @@ function sameSet(a, b) {
 export class Graph {
   constructor(elements = []) {
     this.elements = [];
+    this.index = null;
     const list = Array.isArray(elements) ? elements.filter((e) => e && typeof e === 'object') : [];
     list.filter((e) => !isEdgeData(e)).forEach((e) => this.add(e));
     list.filter(isEdgeData).forEach((e) => this.add(e));
   }
 
+  get indexed() {
+    if (!this.index) {
+      const byId = new Map();
+      const nodes = [];
+      const edges = [];
+      for (const el of this.elements) {
+        if (!byId.has(el.id)) byId.set(el.id, el);
+        (el.kind === 'node' ? nodes : edges).push(el);
+      }
+      this.index = { byId, nodes, edges };
+    }
+    return this.index;
+  }
+
   get nodes() {
-    return this.elements.filter((e) => e.kind === 'node');
+    return this.indexed.nodes;
   }
 
   get edges() {
-    return this.elements.filter((e) => e.kind === 'edge');
+    return this.indexed.edges;
   }
 
   get focused() {
@@ -29,7 +48,7 @@ export class Graph {
   }
 
   find(id) {
-    return this.elements.find((e) => e.id === id) || null;
+    return this.indexed.byId.get(id) || null;
   }
 
   add(data) {
@@ -37,6 +56,7 @@ export class Graph {
     const node = createNode(data);
     while (this.find(node.id)) node.id = uid();
     this.elements.push(node);
+    this.index = null;
     return node;
   }
 
@@ -58,6 +78,7 @@ export class Graph {
       : [];
     if (!shared.length) {
       this.elements.push(edge);
+      this.index = null;
       return edge;
     }
 
@@ -78,6 +99,7 @@ export class Graph {
     const index = this.elements.indexOf(el);
     if (index < 0) return false;
     this.elements.splice(index, 1);
+    this.index = null;
     if (el.kind === 'node') {
       for (const edge of this.edges) {
         if (edge.to === el.id) {
@@ -141,14 +163,17 @@ export class Graph {
 
   markPairs() {
     const edges = this.edges;
+    const single = new Map();
     edges.forEach((edge) => {
       edge.twoWay = false;
       edge.mirror = false;
       edge.lane = 0;
+      const key = edge.from.length === 1 ? pairKey(edge.from[0], edge.to) : null;
+      if (key && !single.has(key)) single.set(key, edge);
     });
     for (const edge of edges) {
-      if (edge.mirror || edge.twoWay || edge.lane) continue;
-      const reverse = this.reverseOf(edge);
+      if (edge.mirror || edge.twoWay || edge.lane || edge.from.length !== 1) continue;
+      const reverse = single.get(pairKey(edge.to, edge.from[0]));
       if (!reverse) continue;
       if (this.isObjection(edge) === this.isObjection(reverse)) {
         edge.twoWay = true;

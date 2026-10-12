@@ -8,6 +8,31 @@ const base = () => [
 ];
 
 describe('Graph', () => {
+  it('exports an idea colour only when it has one', () => {
+    const graph = new Graph([
+      { id: 'a', text: 'A', x: 0, y: 0, color: 'magenta' },
+      { id: 'b', text: 'B', x: 0, y: 0, color: '#ff0000' }
+    ]);
+    expect(graph.export()).toEqual([
+      { id: 'a', text: 'A', x: 0, y: 0, lineType: 'solid', color: 'magenta' },
+      { id: 'b', text: 'B', x: 0, y: 0, lineType: 'solid' }
+    ]);
+  });
+
+  it('keeps lookups current as ideas and links come and go', () => {
+    const graph = new Graph(base());
+    const edge = graph.add({ id: 'ab', from: 'a', to: 'b' });
+    expect(graph.find('ab')).toBe(edge);
+    expect(graph.edges).toEqual([edge]);
+    graph.remove(graph.find('a'));
+    expect(graph.find('a')).toBeNull();
+    expect(graph.find('ab')).toBeNull();
+    expect(graph.nodes.map((n) => n.id)).toEqual(['b', 'c']);
+    const again = graph.add({ id: 'a', text: 'A again', x: 0, y: 0 });
+    expect(graph.find('a')).toBe(again);
+    expect(graph.nodes.map((n) => n.id)).toEqual(['b', 'c', 'a']);
+  });
+
   it('adds nodes before edges regardless of input order', () => {
     const graph = new Graph([{ from: 'a', to: 'c' }, ...base()]);
     expect(graph.nodes.map((n) => n.id)).toEqual(['a', 'b', 'c']);

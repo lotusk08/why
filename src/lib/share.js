@@ -1,3 +1,5 @@
+import { nodeColor } from './reasons/element.js';
+
 const PREFIX = 'map=';
 const MAX_ELEMENTS = 2000;
 const MAX_TEXT = 4000;
@@ -17,12 +19,14 @@ export function validateMap(data) {
   for (const item of data) {
     if (!item || typeof item !== 'object') return null;
     if (isNode(item)) {
+      const color = nodeColor(item.color);
       elements.push({
         id: typeof item.id === 'string' ? item.id : undefined,
         text: item.text.slice(0, MAX_TEXT),
         x: Number(item.x),
         y: Number(item.y),
-        lineType: item.lineType === 'dashed' ? 'dashed' : 'solid'
+        lineType: item.lineType === 'dashed' ? 'dashed' : 'solid',
+        ...(color && { color })
       });
     } else if (isEdge(item)) {
       elements.push({

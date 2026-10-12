@@ -2,7 +2,7 @@
 
 Map an argument. Lay out premises, objections and a conclusion, link them by dragging, then share the whole map as a link or save it as an image.
 
-![An argument map with two premises supporting a conclusion and an objection](docs/argument-map.png)
+![The demo map: a customer journey from awareness to advice, with its stages coloured by phase, the channels that feed each stage and a competitor objecting to the promotion](docs/argument-map.png)
 
 Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-module port of [Reasons.js](https://github.com/davekinkead/reasons) by Dave Kinkead. No runtime dependencies: one small script, one stylesheet, self-hosted fonts, and a canvas.
 
@@ -11,7 +11,7 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 | Do this                                                                | To                                                               |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Double-click empty space                                               | Add an idea                                                      |
-| Double-click an idea or a link                                         | Edit it, make it a premise or an objection                       |
+| Double-click an idea or a link                                         | Edit it, colour it, make it a premise or an objection            |
 | Drag an idea onto another                                              | Link them                                                        |
 | Drag it back the other way                                             | Link both ways                                                   |
 | Double-click a link                                                    | Name it, turn it around, or take one premise out of a joint link |
@@ -19,20 +19,26 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 | Drag the background                                                    | Pan                                                              |
 | Scroll or pinch                                                        | Zoom                                                             |
 
-| Keys                                                                       | Action                                              |
-| -------------------------------------------------------------------------- | --------------------------------------------------- |
-| <kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd>                           | Move through the ideas                              |
-| <kbd>Enter</kbd>                                                           | Edit the selected idea                              |
-| <kbd>Cmd</kbd> <kbd>A</kbd> / <kbd>Shift</kbd> click                       | Select everything, or add one idea to the selection |
-| <kbd>Delete</kbd> / <kbd>Backspace</kbd>                                   | Delete what is selected                             |
-| <kbd>Cmd</kbd> <kbd>Z</kbd> / <kbd>Shift</kbd> <kbd>Cmd</kbd> <kbd>Z</kbd> | Undo / redo                                         |
-| Arrow keys                                                                 | Nudge the selected idea                             |
-| <kbd>+</kbd> <kbd>-</kbd> <kbd>0</kbd>                                     | Zoom in, out, fit                                   |
-| <kbd>Esc</kbd>                                                             | Deselect                                            |
+| Keys                                                                       | Action                                                   |
+| -------------------------------------------------------------------------- | -------------------------------------------------------- |
+| <kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd>                           | Move through the ideas                                   |
+| <kbd>Enter</kbd>                                                           | Edit the selected idea                                   |
+| <kbd>N</kbd>                                                               | Add an idea next to the selected one                     |
+| <kbd>L</kbd>, then <kbd>Tab</kbd> and <kbd>Enter</kbd>                     | Link the selected idea to another                        |
+| <kbd>Cmd</kbd> <kbd>A</kbd> / <kbd>Shift</kbd> click                       | Select everything, or add one idea to the selection      |
+| <kbd>Delete</kbd> / <kbd>Backspace</kbd>                                   | Delete what is selected                                  |
+| <kbd>Cmd</kbd> <kbd>Z</kbd> / <kbd>Shift</kbd> <kbd>Cmd</kbd> <kbd>Z</kbd> | Undo / redo                                              |
+| Arrow keys                                                                 | Nudge the selected idea, or pan when none is selected    |
+| <kbd>+</kbd> <kbd>-</kbd> <kbd>0</kbd>                                     | Zoom in, out, fit                                        |
+| <kbd>Esc</kbd>                                                             | Deselect, cancel a link, or leave the menu               |
+| <kbd>F6</kbd>                                                              | Jump between the map and the menu; arrow keys move in it |
+| <kbd>Shift</kbd> <kbd>Cmd</kbd> <kbd>L</kbd>                               | Copy link                                                |
+| <kbd>Cmd</kbd> <kbd>S</kbd> / <kbd>Shift</kbd> <kbd>Cmd</kbd> <kbd>S</kbd> | Save as SVG / PNG                                        |
+| <kbd>Cmd</kbd> <kbd>P</kbd>                                                | Save as PDF                                              |
 
 Three-finger swipes undo and redo on touch screens.
 
-The map is saved in the browser as you go. **Copy link** compresses the whole map into the address, so anyone with the link opens the same argument; links made with the previous version keep working. **Save as image** renders the map to a PNG in the current theme. Everything else lives in the floating menu: undo, redo, clear the map, save as image, copy link, help, and the light/dark switch. On Windows and Linux, Ctrl stands in for Cmd. The theme follows the system until you flip it, as on [stevehoang.com](https://stevehoang.com).
+A first visit opens on a demo map, a customer journey from awareness to advice with its stages coloured by phase (discover, consider, convert, advocate); clear it from the menu to start your own. The map is saved in the browser as you go. **Copy link** compresses the whole map into the address, so anyone with the link opens the same argument; links made with the previous version keep working. **Save as PNG**, **SVG** or **PDF** renders the map in the current theme; SVG and PDF stay sharp at any size, and PDF goes through the print dialog, where you pick Save as PDF. Everything else lives in the floating menu: undo and redo once there is something to undo or redo, the eraser to clear the map or reset it to the demo, share to copy a link or save the map as PNG, SVG or PDF, help, and the light/dark switch. On Windows and Linux, Ctrl stands in for Cmd. The theme follows the system until you flip it, as on [stevehoang.com](https://stevehoang.com).
 
 ## Develop
 

@@ -1,12 +1,12 @@
-import { NODE_WIDTH, placeNode } from './element.js';
-import { arrowHead, bounds, routeEdge, wrapText } from './layout.js';
+import { NODE_COLORS, NODE_MIN_HEIGHT, NODE_WIDTH, placeNode } from './element.js';
+import { arrowHead, boundaryPoint, bounds, routeEdge, wrapText } from './layout.js';
+import { createSvgContext } from './svg.js';
 
-export const FONT_SIZE = 15;
-export const LINE_HEIGHT = 1.35;
-export const PADDING = 12;
-export const RADIUS = 6;
-export const MIN_HEIGHT = 56;
-export const LABEL_SIZE = 13;
+const FONT_SIZE = 15;
+const LINE_HEIGHT = 1.35;
+const PADDING = 12;
+const RADIUS = 6;
+const LABEL_SIZE = 13;
 
 const VARIABLES = {
   background: '--main-bg',
@@ -39,6 +39,18 @@ const FALLBACK = {
 };
 
 const FONT_KEYS = new Set(['font', 'serif']);
+const TINT = 0.14;
+
+function channels(color) {
+  return (String(color).match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+}
+
+function mix(color, base, amount) {
+  const top = channels(color);
+  const bottom = channels(base);
+  if (top.length < 3 || bottom.length < 3) return base;
+  return `rgb(${bottom.map((value, i) => Math.round(value + (top[i] - value) * amount)).join(', ')})`;
+}
 
 export function readTheme(element) {
   const probe = document.createElement('span');
@@ -54,6 +66,12 @@ export function readTheme(element) {
       theme[key] = getComputedStyle(probe).color || FALLBACK[key];
     }
   }
+  theme.colors = {};
+  for (const name of NODE_COLORS) {
+    probe.style.color = `var(--node-${name})`;
+    const stroke = getComputedStyle(probe).color;
+    theme.colors[name] = { stroke, fill: mix(stroke, theme.nodeBg, TINT) };
+  }
   probe.remove();
   return theme;
 }
@@ -66,11 +84,16 @@ export function labelFont(theme) {
   return `italic ${LABEL_SIZE}px ${theme.serif}`;
 }
 
-export function measureNode(ctx, node, theme) {
-  ctx.font = nodeFont(theme);
-  node.lines = node.text ? wrapText(ctx, node.text, NODE_WIDTH - PADDING * 2) : [];
+function measureNode(ctx, node, theme) {
+  const font = nodeFont(theme);
+  ctx.font = font;
+  const key = `${font}\n${node.text}`;
+  if (node.measured !== key) {
+    node.lines = node.text ? wrapText(ctx, node.text, NODE_WIDTH - PADDING * 2) : [];
+    node.measured = key;
+  }
   const textHeight = Math.max(1, node.lines.length) * FONT_SIZE * LINE_HEIGHT;
-  node.height = Math.max(MIN_HEIGHT, Math.round(textHeight + PADDING * 2));
+  node.height = Math.max(NODE_MIN_HEIGHT, Math.round(textHeight + PADDING * 2));
   placeNode(node, node);
 }
 
@@ -78,7 +101,7 @@ export function measureAll(ctx, graph, theme) {
   graph.nodes.forEach((node) => measureNode(ctx, node, theme));
 }
 
-export function edgeLabel(edge, graph) {
+function edgeLabel(edge, graph) {
   return edge.type || (graph.isObjection(edge) ? 'objection' : 'therefore');
 }
 
@@ -152,11 +175,39 @@ function drawEdge(ctx, edge, graph, theme, scale) {
   ctx.fillText(text, at.x, at.y);
 }
 
+function drawPreview(ctx, { from, to }, theme) {
+  const start = boundaryPoint(to, from, 0);
+  const end = boundaryPoint(from, to, 1);
+  const head = arrowHead({ x1: start.x, y1: start.y, x2: end.x, y2: end.y });
+  const base = arrowBase(head);
+  ctx.strokeStyle = theme.focus;
+  ctx.fillStyle = theme.focus;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(base.x, base.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  fillHead(ctx, head);
+}
+
+function outlineSource(ctx, node, theme) {
+  ctx.beginPath();
+  ctx.roundRect(node.x1 - 4, node.y1 - 4, node.width + 8, node.height + 8, RADIUS + 3);
+  ctx.strokeStyle = theme.focus;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function drawNode(ctx, node, theme) {
   const objection = node.lineType === 'dashed';
+  const tint = node.color ? theme.colors?.[node.color] : null;
   ctx.beginPath();
   ctx.roundRect(node.x1, node.y1, node.width, node.height, RADIUS);
-  ctx.fillStyle = theme.nodeBg;
+  ctx.fillStyle = tint?.fill ?? theme.nodeBg;
   ctx.fill();
   ctx.lineWidth = node.focused ? 2 : 1;
   ctx.strokeStyle = node.focused
@@ -165,7 +216,7 @@ function drawNode(ctx, node, theme) {
       ? theme.hover
       : objection
         ? theme.objection
-        : theme.nodeBorder;
+        : (tint?.stroke ?? theme.nodeBorder);
   ctx.setLineDash(objection ? [5, 4] : []);
   ctx.stroke();
   ctx.setLineDash([]);
@@ -184,16 +235,18 @@ function drawNode(ctx, node, theme) {
   node.lines.forEach((line, i) => ctx.fillText(line, node.x, top + (i + 0.5) * lineHeight, node.width - PADDING));
 }
 
-export function paint(ctx, graph, camera, theme, dpr = 1) {
+function paint(ctx, graph, camera, theme, dpr = 1, preview = null) {
   const k = camera.scale * dpr;
   ctx.setTransform(k, 0, 0, k, camera.offset.x * k, camera.offset.y * k);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   measureAll(ctx, graph, theme);
   graph.markPairs().forEach((edge) => drawEdge(ctx, edge, graph, theme, camera.scale));
+  if (preview) drawPreview(ctx, preview, theme);
   const nodes = graph.nodes;
   nodes.filter((node) => !node.focused).forEach((node) => drawNode(ctx, node, theme));
   nodes.filter((node) => node.focused).forEach((node) => drawNode(ctx, node, theme));
+  if (preview) outlineSource(ctx, preview.from, theme);
 }
 
 export function createView(container) {
@@ -217,10 +270,10 @@ export function createView(container) {
     canvas.style.height = `${size.height}px`;
   }
 
-  function render(graph, camera, theme) {
+  function render(graph, camera, theme, preview) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    paint(ctx, graph, camera, theme, size.dpr);
+    paint(ctx, graph, camera, theme, size.dpr, preview);
   }
 
   function destroy() {
@@ -231,19 +284,43 @@ export function createView(container) {
   return { canvas, ctx, size, resize, render, destroy };
 }
 
+function framed(ctx, graph, theme, padding) {
+  measureAll(ctx, graph, theme);
+  const box = bounds(graph.nodes);
+  if (!box) return null;
+  return {
+    width: Math.ceil(box.x2 - box.x1 + padding * 2),
+    height: Math.ceil(box.y2 - box.y1 + padding * 2),
+    camera: { scale: 1, offset: { x: padding - box.x1, y: padding - box.y1 } }
+  };
+}
+
 export function renderToBlob(graph, theme, { padding = 48, scale = 2 } = {}) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  measureAll(ctx, graph, theme);
-  const box = bounds(graph.nodes);
-  if (!box) return Promise.resolve(null);
-  const width = Math.ceil(box.x2 - box.x1 + padding * 2);
-  const height = Math.ceil(box.y2 - box.y1 + padding * 2);
-  canvas.width = width * scale;
-  canvas.height = height * scale;
+  const frame = framed(ctx, graph, theme, padding);
+  if (!frame) return Promise.resolve(null);
+  canvas.width = frame.width * scale;
+  canvas.height = frame.height * scale;
   ctx.fillStyle = theme.background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const camera = { scale: 1, offset: { x: padding - box.x1, y: padding - box.y1 } };
-  paint(ctx, graph, camera, theme, scale);
+  paint(ctx, graph, frame.camera, theme, scale);
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+}
+
+export function renderToSvg(graph, theme, { padding = 48, measure = null } = {}) {
+  const ctx = createSvgContext(measure ?? document.createElement('canvas').getContext('2d'), {
+    background: theme.background
+  });
+  const frame = framed(ctx, graph, theme, padding);
+  if (!frame) return null;
+  const { width, height } = frame;
+  ctx.fillStyle = theme.background;
+  ctx.fillRect(0, 0, width, height);
+  paint(ctx, graph, frame.camera, theme);
+  return {
+    width,
+    height,
+    markup: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xml:space="preserve"><title>Argument map</title>${ctx}</svg>`
+  };
 }

@@ -1,12 +1,14 @@
 <script>
   import Icon from './Icon.svelte';
   import { actions, ui } from '../lib/map.svelte.js';
+  import { NODE_COLORS } from '../lib/reasons/element.js';
 
   let dialog = $state(null);
   let textarea = $state(null);
   let text = $state('');
   let lineType = $state('solid');
   let direction = $state('forward');
+  let color = $state('');
   let openedId = null;
 
   const editing = $derived(ui.editing);
@@ -36,6 +38,7 @@
       openedId = editing.id;
       text = editing.text;
       lineType = editing.lineType;
+      color = editing.color ?? '';
       direction = editing.twoWay ? 'both' : 'forward';
       if (!dialog.open) dialog.showModal();
       const end = editing.text.length;
@@ -55,7 +58,7 @@
   }
 
   function submit() {
-    actions.submitEdit(text, lineType, direction);
+    actions.submitEdit(text, lineType, direction, color);
   }
 
   function onKeydown(event) {
@@ -74,7 +77,7 @@
   }
 </script>
 
-<dialog bind:this={dialog} aria-labelledby="editor-title" onclose={onClose} onpointerdown={onBackdrop}>
+<dialog class="editor" bind:this={dialog} aria-labelledby="editor-title" onclose={onClose} onpointerdown={onBackdrop}>
   <div class="panel">
     <header class="dialog-header">
       <h2 id="editor-title">{title}</h2>
@@ -85,34 +88,56 @@
 
     <div class="dialog-body">
       <textarea
+        class="field"
+        class:idea={isNode}
+        class:objection={isNode && lineType === 'dashed'}
+        style:--tint={isNode && color ? `var(--node-${color})` : null}
         bind:this={textarea}
         bind:value={text}
-        rows="3"
+        rows="2"
         placeholder={isNode ? 'Say what you think…' : 'therefore'}
         aria-label={isNode ? 'Idea' : 'Link label'}
         onkeydown={onKeydown}></textarea>
 
       {#if isNode}
-        <div class="kind" role="radiogroup" aria-label="Kind of idea">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={lineType === 'solid'}
-            class:active={lineType === 'solid'}
-            onclick={() => (lineType = 'solid')}
-          >
-            Premise
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={lineType === 'dashed'}
-            class="objection"
-            class:active={lineType === 'dashed'}
-            onclick={() => (lineType = 'dashed')}
-          >
-            Objection
-          </button>
+        <div class="options">
+          <div class="kind" role="radiogroup" aria-label="Kind of idea">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={lineType === 'solid'}
+              class:active={lineType === 'solid'}
+              onclick={() => (lineType = 'solid')}
+            >
+              Premise
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={lineType === 'dashed'}
+              class="objection"
+              class:active={lineType === 'dashed'}
+              onclick={() => (lineType = 'dashed')}
+            >
+              Objection
+            </button>
+          </div>
+          <div class="swatches" role="radiogroup" aria-label="Colour">
+            {#each ['', ...NODE_COLORS] as name (name)}
+              <button
+                type="button"
+                role="radio"
+                class="swatch"
+                style:--swatch={name ? `var(--node-${name})` : null}
+                aria-checked={color === name}
+                aria-label={name ? name[0].toUpperCase() + name.slice(1) : 'No colour'}
+                title={name ? name[0].toUpperCase() + name.slice(1) : 'No colour'}
+                class:active={color === name}
+                class:none={!name}
+                onclick={() => (color = name)}
+              ></button>
+            {/each}
+          </div>
         </div>
       {:else}
         {#if editing?.joint}
@@ -128,7 +153,7 @@
           </ul>
         {/if}
         {#if directional}
-          <div class="kind" role="radiogroup" aria-label="Direction">
+          <div class="kind stack" role="radiogroup" aria-label="Direction">
             <button
               type="button"
               role="radio"
@@ -176,29 +201,88 @@
 </dialog>
 
 <style>
-  textarea {
+  .editor {
+    width: min(28rem, calc(100vw - 2rem));
+  }
+
+  .editor .dialog-header {
+    padding-top: 0.75rem;
+    border-bottom: 0;
+  }
+
+  .editor .dialog-body {
+    padding-top: 0.25rem;
+  }
+
+  .field {
     display: block;
     width: 100%;
-    min-height: 6rem;
-    padding: 0.75rem;
-    font-size: 1.05rem;
-    line-height: 1.5;
-    color: var(--heading-color);
+    min-height: 3.5rem;
+    max-height: 40vh;
+    padding: 0.85rem 1rem;
+    field-sizing: content;
+    font-size: 1rem;
+    line-height: 1.45;
+    text-align: center;
+    color: var(--canvas-node-text);
+    background: var(--canvas-node-bg);
+    border: 1px solid var(--canvas-node-border);
+    border-radius: 6px;
+    resize: none;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .field.idea {
+    background: color-mix(in srgb, var(--tint, var(--canvas-node-bg)) 14%, var(--canvas-node-bg));
+    border-color: var(--tint, var(--canvas-node-border));
+  }
+
+  .field.objection {
+    border-style: dashed;
+    border-color: var(--canvas-objection);
+  }
+
+  .field:not(.idea) {
+    min-height: 2.75rem;
+    padding: 0.6rem 1rem;
+    font-family: var(--font-serif);
+    font-style: italic;
     background: transparent;
-    border: 1px solid var(--btn-border-color);
-    border-radius: var(--radius-xs);
-    resize: vertical;
-    transition: border-color 0.15s ease-in-out;
   }
 
-  textarea:focus {
+  .field:focus {
     outline: none;
-    border-color: var(--input-focus-border-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 22%, transparent);
   }
 
-  textarea::placeholder {
+  .field::placeholder {
     color: var(--text-muted-color);
     opacity: 0.6;
+  }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .options .kind {
+    margin-top: 0;
+  }
+
+  .editor .btn.danger {
+    color: var(--text-muted-color);
+  }
+
+  .editor .btn.danger:hover,
+  .editor .btn.danger:focus-visible {
+    color: var(--danger-color);
   }
 
   .kind {
@@ -212,8 +296,8 @@
   }
 
   .kind button {
-    padding: 0.35rem 0.9rem;
-    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-muted-color);
     transition:
       background-color 0.25s ease,
@@ -222,6 +306,21 @@
 
   .kind button + button {
     border-left: 1px solid var(--btn-border-color);
+  }
+
+  .kind.stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .kind.stack button {
+    text-align: left;
+  }
+
+  .kind.stack button + button {
+    border-top: 1px solid var(--btn-border-color);
+    border-left: 0;
   }
 
   .kind button:hover {
@@ -236,6 +335,43 @@
   .kind button.objection.active {
     color: var(--danger-color);
     background-color: color-mix(in srgb, var(--danger-color) 10%, transparent);
+  }
+
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .swatch {
+    width: 1.25rem;
+    height: 1.25rem;
+    background: color-mix(in srgb, var(--swatch, transparent) 14%, var(--canvas-node-bg));
+    border: 1.5px solid var(--swatch, var(--canvas-node-border));
+    border-radius: 50%;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .swatch.none {
+    background: linear-gradient(
+      135deg,
+      transparent calc(50% - 1px),
+      var(--canvas-node-border) calc(50% - 1px),
+      var(--canvas-node-border) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    );
+  }
+
+  .swatch:hover {
+    transform: scale(1.15);
+  }
+
+  .swatch.active {
+    box-shadow:
+      0 0 0 2px var(--main-bg),
+      0 0 0 4px var(--primary-color);
   }
 
   .parts {
