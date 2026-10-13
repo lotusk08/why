@@ -8,10 +8,10 @@
   import { reducedMotion } from '../lib/reasons/motion.js';
 
   const SHORTCUTS = {
-    share: { key: 'l', shift: true, label: '⇧⌘L' },
-    savePng: { key: 's', shift: true, label: '⇧⌘S' },
-    saveSvg: { key: 's', shift: false, label: '⌘S' },
-    savePdf: { key: 'p', shift: false, label: '⌘P' }
+    share: { key: 'l', shift: true },
+    savePng: { key: 's', shift: true },
+    saveSvg: { key: 's', shift: false },
+    savePdf: { key: 'p', shift: false }
   };
 
   let tips = $state(false);
@@ -20,14 +20,14 @@
 
   const sheets = $derived({
     map: [
-      { icon: 'eraser', label: 'Clear the map', disabled: !map.nodes, action: 'clear' },
-      { icon: 'lightbulb', label: 'Reset to demo', action: 'reset' }
+      { icon: 'eraser', label: 'Clear', name: 'Clear the map', disabled: !map.nodes, action: 'clear' },
+      { icon: 'lightbulb', label: 'Demo', name: 'Reset to demo', action: 'reset' }
     ],
     share: [
-      { icon: 'link', label: 'Copy link', action: 'share' },
-      { icon: 'image', label: 'Save as PNG', action: 'savePng' },
-      { icon: 'vector', label: 'Save as SVG', action: 'saveSvg' },
-      { icon: 'pdf', label: 'Save as PDF', action: 'savePdf' }
+      { icon: 'pdf', label: 'PDF', name: 'Save as PDF', action: 'savePdf' },
+      { icon: 'vector', label: 'SVG', name: 'Save as SVG', action: 'saveSvg' },
+      { icon: 'image', label: 'PNG', name: 'Save as PNG', action: 'savePng' },
+      { icon: 'link', label: 'Link', name: 'Copy link', action: 'share' }
     ]
   });
 
@@ -130,12 +130,15 @@
     </button>
     <div class="sheet" id="menu-{name}" class:shown={open === name}>
       {#each sheets[name] as item (item.label)}
-        <button type="button" class="choice" disabled={item.disabled} onclick={() => choose(item)}>
+        <button
+          type="button"
+          class="choice"
+          aria-label={item.name}
+          disabled={item.disabled}
+          onclick={() => choose(item)}
+        >
           <Icon name={item.icon} />
           {item.label}
-          {#if SHORTCUTS[item.action]}
-            <kbd class="hint">{SHORTCUTS[item.action].label}</kbd>
-          {/if}
         </button>
       {/each}
     </div>
@@ -251,14 +254,11 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 170px;
+    min-width: 150px;
     padding: 6px;
-    background-color: var(--menu-tip-bg);
-    border: 1px solid rgb(255 255 255 / 10%);
+    background-color: var(--menu-sheet-bg);
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgb(0 0 0 / 20%);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    box-shadow: var(--menu-shadow);
     opacity: 0;
     visibility: hidden;
     transform: translateY(8px) scale(0.98);
@@ -282,36 +282,36 @@
   .choice {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: 14px;
+    padding: 8px 12px;
     font-size: 14px;
-    color: #ffffff;
+    color: var(--text-color);
     white-space: nowrap;
     text-align: left;
     border-radius: 6px;
-    transition: background-color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .choice :global(.icon) {
+    color: var(--site-btn-color);
+    transition: color 0.2s ease;
   }
 
   .choice:hover:not(:disabled),
   .choice:focus-visible {
-    background-color: rgb(255 255 255 / 12%);
+    color: var(--primary-color);
+    background-color: var(--site-hover-bg);
+  }
+
+  .choice:hover:not(:disabled) :global(.icon),
+  .choice:focus-visible :global(.icon) {
+    color: var(--primary-color);
   }
 
   .choice:disabled {
     opacity: 0.4;
-  }
-
-  .hint {
-    min-width: 0;
-    margin: 0 0 0 auto;
-    padding: 0 0 0 16px;
-    font: inherit;
-    font-size: 12px;
-    color: inherit;
-    background: none;
-    border: 0;
-    box-shadow: none;
-    opacity: 0.6;
   }
 
   .mode {
