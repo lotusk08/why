@@ -1,8 +1,11 @@
 <script>
   import { tick } from 'svelte';
+  import { cubicOut } from 'svelte/easing';
+  import { slide } from 'svelte/transition';
   import Icon from './Icon.svelte';
   import { actions, map, ui } from '../lib/map.svelte.js';
   import { flipTheme, theme } from '../lib/theme.svelte.js';
+  import { reducedMotion } from '../lib/reasons/motion.js';
 
   const SHORTCUTS = {
     share: { key: 'l', shift: true, label: '⇧⌘L' },
@@ -27,6 +30,11 @@
       { icon: 'pdf', label: 'Save as PDF', action: 'savePdf' }
     ]
   });
+
+  function reveal(node) {
+    const base = slide(node, { axis: 'x', duration: reducedMotion() ? 0 : 200, easing: cubicOut });
+    return { ...base, css: (t, u) => `${base.css(t, u)} opacity: ${t};` };
+  }
 
   function cycle(list, current, delta) {
     const index = list.indexOf(current);
@@ -137,12 +145,12 @@
 <nav class="menu" aria-label="Menu">
   <div class="actions" role="toolbar" aria-label="Map actions" tabindex="-1" bind:this={toolbar} onkeydown={onMenuKey}>
     {#if map.canUndo}
-      <button type="button" class="item" title="Undo (⌘Z)" aria-label="Undo" onclick={actions.undo}>
+      <button type="button" class="item" title="Undo (⌘Z)" aria-label="Undo" onclick={actions.undo} transition:reveal>
         <Icon name="undo" />
       </button>
     {/if}
     {#if map.canRedo}
-      <button type="button" class="item" title="Redo (⇧⌘Z)" aria-label="Redo" onclick={actions.redo}>
+      <button type="button" class="item" title="Redo (⇧⌘Z)" aria-label="Redo" onclick={actions.redo} transition:reveal>
         <Icon name="redo" />
       </button>
     {/if}
@@ -199,13 +207,17 @@
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     transition: background-color 0.3s ease;
+    animation: slide-enter 0.4s var(--ease-out) 0.15s both;
     user-select: none;
     -webkit-user-select: none;
   }
 
   .actions {
     display: flex;
-    gap: 12px;
+  }
+
+  .actions > :not(:last-child) {
+    margin-right: 12px;
   }
 
   .item {
@@ -249,20 +261,21 @@
     -webkit-backdrop-filter: blur(5px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(4px);
+    transform: translateY(8px) scale(0.98);
+    transform-origin: bottom left;
     transition:
-      opacity 0.2s ease,
-      transform 0.2s ease,
-      visibility 0s linear 0.2s;
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0s linear 0.18s;
   }
 
   .sheet.shown {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: none;
     transition:
-      opacity 0.2s ease,
-      transform 0.2s ease,
+      opacity var(--motion) var(--ease-out),
+      transform var(--motion) var(--ease-out),
       visibility 0s linear 0s;
   }
 
@@ -340,16 +353,20 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    transform: translateY(6px);
     transition:
-      opacity 0.3s ease,
-      visibility 0s linear 0.3s;
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0s linear 0.2s;
   }
 
   .tips.shown {
     opacity: 1;
     visibility: visible;
+    transform: none;
     transition:
-      opacity 0.3s ease,
+      opacity 0.3s var(--ease-out),
+      transform 0.3s var(--ease-out),
       visibility 0s linear 0s;
   }
 
@@ -387,8 +404,8 @@
       padding: 4px 12px;
     }
 
-    .actions {
-      gap: 6px;
+    .actions > :not(:last-child) {
+      margin-right: 6px;
     }
 
     .item {

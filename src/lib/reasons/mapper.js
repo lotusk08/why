@@ -2,6 +2,7 @@ import { Graph } from './graph.js';
 import { NODE_MIN_HEIGHT, NODE_WIDTH, nodeColor, placeNode } from './element.js';
 import { attachInteraction } from './interaction.js';
 import { bounds, edgeHit, nodeContains } from './layout.js';
+import { easeOut, reducedMotion } from './motion.js';
 import { createView, labelFont, measureAll, nodeFont, readTheme, renderToBlob, renderToSvg } from './view.js';
 
 const MIN_SCALE = 0.25;
@@ -9,6 +10,8 @@ const MAX_SCALE = 4;
 const HISTORY_LIMIT = 100;
 const FIT_PADDING = 64;
 const REVEAL_MARGIN = 48;
+const GLIDE_MS = 280;
+const FADE_MS = 240;
 const SPOT_STEP = { x: NODE_WIDTH + 100, y: NODE_MIN_HEIGHT + 84 };
 const SPOT_CLEARANCE = 24;
 
@@ -26,6 +29,8 @@ export function createMapper(container, options) {
   let frame = 0;
   let hovered = null;
   let linkFrom = null;
+  let glide = 0;
+  let heading = null;
 
   function toWorld(clientX, clientY) {
     const rect = view.canvas.getBoundingClientRect();
@@ -118,30 +123,90 @@ export function createMapper(container, options) {
     apply(history.future.pop());
   }
 
-  function center(box) {
-    camera.offset.x = view.size.width / 2 / camera.scale - (box.x1 + box.x2) / 2;
-    camera.offset.y = view.size.height / 2 / camera.scale - (box.y1 + box.y2) / 2;
+  function centered(point, scale) {
+    return {
+      scale,
+      offset: { x: view.size.width / 2 / scale - point.x, y: view.size.height / 2 / scale - point.y }
+    };
   }
 
-  function fit() {
-    view.resize();
-    measureAll(view.ctx, graph, theme);
-    const box = bounds(graph.nodes);
-    if (!box) {
-      camera.scale = 1;
-      camera.offset.x = view.size.width / 2;
-      camera.offset.y = view.size.height / 2;
-    } else {
-      const width = box.x2 - box.x1 + FIT_PADDING * 2;
-      const height = box.y2 - box.y1 + FIT_PADDING * 2;
-      camera.scale = clamp(Math.min(view.size.width / width, view.size.height / height), MIN_SCALE, 1);
-      center(box);
-    }
+  function middleOf(cam) {
+    return { x: view.size.width / 2 / cam.scale - cam.offset.x, y: view.size.height / 2 / cam.scale - cam.offset.y };
+  }
+
+  function stopGlide() {
+    if (glide) cancelAnimationFrame(glide);
+    glide = 0;
+    heading = null;
+  }
+
+  function settle(target) {
+    camera.scale = target.scale;
+    camera.offset.x = target.offset.x;
+    camera.offset.y = target.offset.y;
     publish();
     requestDraw();
   }
 
+  function moveCamera(target, animate) {
+    stopGlide();
+    if (!animate || reducedMotion()) {
+      settle(target);
+      return;
+    }
+    heading = target;
+    const from = { scale: camera.scale, middle: middleOf(camera) };
+    const to = { scale: target.scale, middle: middleOf(target) };
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / GLIDE_MS);
+      if (t === 1) {
+        glide = 0;
+        heading = null;
+        settle(target);
+        return;
+      }
+      const k = easeOut(t);
+      const scale = from.scale + (to.scale - from.scale) * k;
+      const middle = {
+        x: from.middle.x + (to.middle.x - from.middle.x) * k,
+        y: from.middle.y + (to.middle.y - from.middle.y) * k
+      };
+      Object.assign(camera, centered(middle, scale));
+      view.render(graph, camera, theme, linkPreview());
+      glide = requestAnimationFrame(step);
+    };
+    glide = requestAnimationFrame(step);
+  }
+
+  function fadeIn() {
+    view.canvas.animate?.([{ opacity: 0 }, { opacity: 1 }], {
+      duration: reducedMotion() ? 0 : FADE_MS,
+      easing: 'ease-out'
+    });
+  }
+
+  function fit(animate = false) {
+    view.resize();
+    measureAll(view.ctx, graph, theme);
+    const box = bounds(graph.nodes);
+    if (!box) {
+      moveCamera({ scale: 1, offset: { x: view.size.width / 2, y: view.size.height / 2 } }, animate);
+      return;
+    }
+    const width = box.x2 - box.x1 + FIT_PADDING * 2;
+    const height = box.y2 - box.y1 + FIT_PADDING * 2;
+    const scale = clamp(Math.min(view.size.width / width, view.size.height / height), MIN_SCALE, 1);
+    moveCamera(centered({ x: (box.x1 + box.x2) / 2, y: (box.y1 + box.y2) / 2 }, scale), animate);
+  }
+
+  function zoomBy(factor) {
+    const goal = heading ?? camera;
+    moveCamera(centered(middleOf(goal), clamp(goal.scale * factor, MIN_SCALE, MAX_SCALE)), true);
+  }
+
   function zoomAt(factor, client) {
+    stopGlide();
     const before = toWorld(client.x, client.y);
     camera.scale = clamp(camera.scale * factor, MIN_SCALE, MAX_SCALE);
     const after = toWorld(client.x, client.y);
@@ -152,6 +217,7 @@ export function createMapper(container, options) {
   }
 
   function pinch(scale, anchor, client) {
+    stopGlide();
     camera.scale = clamp(scale, MIN_SCALE, MAX_SCALE);
     const rect = view.canvas.getBoundingClientRect();
     camera.offset.x = (client.x - rect.left) / camera.scale - anchor.x;
@@ -182,6 +248,7 @@ export function createMapper(container, options) {
     hovered = null;
     linkFrom = null;
     fit();
+    fadeIn();
   }
 
   function reveal(el) {
@@ -191,7 +258,7 @@ export function createMapper(container, options) {
     const y = (point.y + camera.offset.y) * camera.scale;
     const { width, height } = view.size;
     if (x >= REVEAL_MARGIN && y >= REVEAL_MARGIN && x <= width - REVEAL_MARGIN && y <= height - REVEAL_MARGIN) return;
-    center({ x1: point.x, x2: point.x, y1: point.y, y2: point.y });
+    moveCamera(centered(point, camera.scale), true);
   }
 
   function isFree(point) {
@@ -279,20 +346,22 @@ export function createMapper(container, options) {
     hit,
     hover,
     pan(offset) {
+      stopGlide();
       camera.offset.x = offset.x;
       camera.offset.y = offset.y;
       requestDraw();
     },
     panBy(dx, dy) {
+      stopGlide();
       camera.offset.x -= dx / camera.scale;
       camera.offset.y -= dy / camera.scale;
       requestDraw();
     },
     pinch,
     zoomAt,
-    zoomIn: () => zoomAt(1.2, viewportCenter()),
-    zoomOut: () => zoomAt(1 / 1.2, viewportCenter()),
-    fit,
+    zoomIn: () => zoomBy(1.2),
+    zoomOut: () => zoomBy(1 / 1.2),
+    fit: () => fit(true),
     undo,
     redo,
     focused: () => graph.focused,
@@ -417,6 +486,7 @@ export function createMapper(container, options) {
 
   const detachInteraction = attachInteraction(view.canvas, ctl);
   const observer = new ResizeObserver(() => {
+    stopGlide();
     const before = toWorld(viewportCenter().x, viewportCenter().y);
     view.resize();
     const after = toWorld(viewportCenter().x, viewportCenter().y);
@@ -437,7 +507,7 @@ export function createMapper(container, options) {
     load,
     undo,
     redo,
-    fit,
+    fit: ctl.fit,
     zoomIn: ctl.zoomIn,
     zoomOut: ctl.zoomOut,
     export: () => graph.export(),
@@ -472,7 +542,8 @@ export function createMapper(container, options) {
       graph = new Graph(elements);
       hovered = null;
       commit();
-      fit();
+      fit(true);
+      fadeIn();
     },
     detach(id, sourceId) {
       const edge = graph.find(id);
@@ -488,6 +559,7 @@ export function createMapper(container, options) {
     toPNG: () => renderToBlob(new Graph(graph.export()), theme),
     toSVG: () => renderToSvg(new Graph(graph.export()), theme),
     destroy() {
+      stopGlide();
       detachInteraction();
       observer.disconnect();
       document.fonts?.removeEventListener?.('loadingdone', remeasure);

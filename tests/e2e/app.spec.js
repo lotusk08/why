@@ -399,6 +399,19 @@ test('zooms with the keyboard and the wheel, and fits back', async ({ page }) =>
   await expect.poll(() => scaleOf(page)).toBeGreaterThan(Number(before));
 });
 
+test('glides the view, and jumps when the system asks for less motion', async ({ page }) => {
+  const main = page.locator('main.workspace');
+  const before = await main.getAttribute('data-scale');
+  await page.keyboard.press('+');
+  expect(await main.getAttribute('data-scale')).toBe(before);
+  await expect(main).not.toHaveAttribute('data-scale', before);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const zoomed = await main.getAttribute('data-scale');
+  await page.keyboard.press('0');
+  expect(await main.getAttribute('data-scale')).toBe(before);
+  expect(zoomed).not.toBe(before);
+});
+
 test('switches between light and dark mode', async ({ page }) => {
   const html = page.locator('html');
   await expect(html).not.toHaveAttribute('data-mode', /.+/);

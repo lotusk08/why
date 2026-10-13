@@ -36,7 +36,7 @@ Built with [Svelte 5](https://svelte.dev) and [Vite](https://vite.dev) on an ES-
 | <kbd>Cmd</kbd> <kbd>S</kbd> / <kbd>Shift</kbd> <kbd>Cmd</kbd> <kbd>S</kbd> | Save as SVG / PNG                                        |
 | <kbd>Cmd</kbd> <kbd>P</kbd>                                                | Save as PDF                                              |
 
-Three-finger swipes undo and redo on touch screens.
+Three-finger swipes undo and redo on touch screens. Panels slide and fade into place and the view glides when it moves on its own; with reduced motion turned on in the system, everything switches instantly.
 
 A first visit opens on a demo map, a customer journey from awareness to advice with its stages coloured by phase (discover, consider, convert, advocate); clear it from the menu to start your own. The map is saved in the browser as you go. **Copy link** compresses the whole map into the address, so anyone with the link opens the same argument; links made with the previous version keep working. **Save as PNG**, **SVG** or **PDF** renders the map in the current theme; SVG and PDF stay sharp at any size, and PDF goes through the print dialog, where you pick Save as PDF. Everything else lives in the floating menu: undo and redo once there is something to undo or redo, the eraser to clear the map or reset it to the demo, share to copy a link or save the map as PNG, SVG or PDF, help, and the light/dark switch. On Windows and Linux, Ctrl stands in for Cmd. The theme follows the system until you flip it, as on [stevehoang.com](https://stevehoang.com).
 

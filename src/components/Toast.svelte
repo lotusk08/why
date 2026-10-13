@@ -20,7 +20,7 @@
     border-radius: var(--radius-xs);
     opacity: 0;
     visibility: hidden;
-    transform: translate(-50%, 6px);
+    transform: translate(-50%, 10px);
     transition:
       opacity 0.2s ease,
       transform 0.2s ease,
@@ -33,8 +33,8 @@
     visibility: visible;
     transform: translate(-50%, 0);
     transition:
-      opacity 0.2s ease,
-      transform 0.2s ease,
+      opacity var(--motion) var(--ease-out),
+      transform var(--motion) var(--ease-out),
       visibility 0s linear 0s;
   }
 </style>
